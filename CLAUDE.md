@@ -44,6 +44,8 @@ exactly what they will see and what to press.
    the folders, makes a desktop shortcut "Love Live Studio", starts the engine and makes one test picture. It can
    take 15-60 minutes depending on the internet: **run it in the background** and check `my/setup.log` every few
    minutes, telling the user the progress. It is safe to run again after an interruption (finished downloads are kept).
+   On a **GTX 10 card** (setup says build `pascal`), also offer the 4 GB "Turbo sketch" model (`-Optional turbo`): it
+   makes rough drafts about 6x faster than Final, which matters on a slow card. It needs a yes like any big download.
    Exit codes: 11 = not enough space, 13 = a download or unpack failed (run again; if it fails twice, check the
    internet), 14 = the engine or the self-test failed (section 6).
 5. **Show them the Studio:** `powershell -ExecutionPolicy Bypass -File kit/start.ps1` opens it in the browser
@@ -161,8 +163,8 @@ This is the loop the kit's author uses: try a few variants side by side, the hum
 | "extra fingers / weird hands" | normal for these models | new seeds (4 variations), `hands` out of frame (`upper body`), or `bad hands, extra fingers` in avoid |
 | "two girls appeared" | crowded scene tags | `solo` in character, fewer scene props; `1girl, solo` must stay |
 | "I want <another show / artist> style" | different designer | look the artist up on Danbooru (`https://danbooru.donmai.us/tags.json?search[name]=<tag>`, a few hundred posts = the model knows it), copy the `ll_tv` template with that `@artist` and year into `my/presets.json`, round of 2 seeds x 2 years |
-| "make it more original / my own style" | | see the guide's "Make it yours": change year, `official art`, palette tags (`pastel colors`, `muted colors`), `thick outlines`, face features, body drawing. Run rounds and record the winner as a named style in `my/presets.json` |
-| "too slow" | GTX 10 card, or first picture (models loading) | Quality "Quick draft"; fewer pictures per click; close games/browsers using the GPU; section 7 |
+| "make it more original / my own style" | | Small style words (`pastel colors`, `flat color`, `thick lineart`, `watercolor (medium)`, `film grain`) barely move the Love Live look, even weighted (tested). What works: **a second artist tag** after `@murota yuuhei` (blends; see the experimental `ll_soft` / `ll_watercolor` styles), **a weaker designer** `(@murota yuuhei:0.6)` + another `year` + era tags (`ll_90s`), `year 2023` / `official art`, or Anima Base (optional download). Run a round of 4-6 artist blends on their character (Danbooru artists with 300+ posts), record the winner as a named style in `my/presets.json` |
+| "too slow" | GTX 10 card, or first picture (models loading) | Turbo or Small sketch to explore, Preview to check, Final for keepers (section 7); fewer pictures per click; close games/browsers using the GPU; section 7 |
 | "the page doesn't open / engine not running" | engine stopped or crashed | `start.ps1 -Restart`; read `<data>\logs\comfyui.err.log`; section 6 |
 | "black or grey pictures" | numeric overflow on old cards | `gen.py selftest`; add `--fp32-vae` to `extra_flags` in `my/settings.json`, restart; if still black, add `--force-fp32` (slower) |
 | "out of space" | outputs grew | section 6 "Space" |
@@ -200,10 +202,15 @@ is kept as `engine\ComfyUI_windows_portable.old-<date>`: delete it once the new 
 
 ## 7. Hardware notes
 
-| card | engine build | speed (832x1248, 30 steps) | notes |
-|---|---|---|---|
-| RTX 5060 8 GB (test PC: 5900X, 16 GB) | `modern` (torch cu130) | see `docs/guide` "Speed" (measured) | everything as tested |
-| GTX 1070 8 GB | `pascal` (torch 2.14 cu126, the last PyTorch that supports it) | expect several times slower than a 5060 | not tested on real hardware. The GPU computes in fp16 on Windows. If pictures come out black, setup retries with `--fp32-vae`, then `--force-fp32` (slower). Prefer "Quick draft" for exploring and Final for keepers. The driver must be on the 580 branch or older-but->=560 |
+| card | engine build | Final 30 steps | Preview 18 | Small sketch | Turbo sketch | notes |
+|---|---|---|---|---|---|---|
+| RTX 5060 8 GB (test PC: Ryzen 5900X, 16 GB, measured 2026-11-17) | `modern` (torch cu130) | 56 s | 34 s | 18 s | 9 s | peak VRAM 7.3 GB with a body drawing |
+| GTX 1070 8 GB | `pascal` (torch 2.14 cu126, the last PyTorch that supports it) | estimate 4-5 min | ~2.5 min | ~1.5 min | ~45 s | **not tested on real hardware**: estimates from compute throughput. Measure the first pictures and tell the user real numbers. On Windows ComfyUI runs this card in fp16; if pictures come out black, setup retries with `--fp32-vae`, then `--force-fp32` (slower). Driver: 580 branch (the last for GTX 10) |
+
+What the qualities are for: **Preview** is nearly the same picture as Final with the same seed (use it to check an
+idea, then Final with that seed). **Small sketch** looks as good but is a different picture. **Turbo** is fastest but
+its Love Live look is weaker (more generic faces, stray text, extra props): use it to explore prompts and poses, never
+to judge style. On a slow card: Turbo or Small to explore, Preview to pick, Final for keepers.
 
 16 GB of RAM is enough: the models take about 6 GB, and nothing else heavy needs to run. Keep the data folder on an SSD.
 

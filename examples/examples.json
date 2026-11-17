@@ -1,0 +1,181 @@
+{
+ "note": "The guide's example pictures: Studio settings (style, character, body, scene, seed, quality final) made on an RTX 5060 8 GB. Same seed + settings = the same picture (tiny differences between graphics cards are normal).",
+ "examples": [
+  {
+   "title": "Seaside schoolgirl (the lab's test girl)",
+   "style": "ll_tv",
+   "body": "none",
+   "seed": 1,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short silver hair, single braid, purple eyes, white cardigan, sailor school uniform, pleated skirt, @murota yuuhei, cowboy shot, holding paper cup, seaside railing, ocean, blue sky, smile",
+   "img": "img/ex01.jpg",
+   "character": "1girl, solo, short silver hair, single braid, purple eyes, white cardigan, sailor school uniform, pleated skirt",
+   "scene": "cowboy shot, holding paper cup, seaside railing, ocean, blue sky, smile",
+   "secs": 58.3
+  },
+  {
+   "title": "Idol on stage",
+   "style": "ll_tv",
+   "body": "average_idol",
+   "seed": 2,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long orange hair, side ponytail, green eyes, idol clothes, frilled dress, white gloves, hair ribbon, @murota yuuhei, full body, concert stage, stage lights, light particles, smile, open mouth",
+   "img": "img/ex02.jpg",
+   "character": "1girl, solo, long orange hair, side ponytail, green eyes, idol clothes, frilled dress, white gloves, hair ribbon",
+   "scene": "concert stage, stage lights, light particles, smile, open mouth",
+   "secs": 56.2
+  },
+  {
+   "title": "Card art with sparkles",
+   "style": "ll_card",
+   "body": "none",
+   "seed": 1,
+   "prompt": "masterpiece, best quality, year 2016, official art, 1girl, solo, long black hair, hime cut, red eyes, idol clothes, white and gold dress, tiara, detached sleeves, @murota yuuhei, upper body, sparkle, light particles, flower petals, looking at viewer, smile",
+   "img": "img/ex03.jpg",
+   "character": "1girl, solo, long black hair, hime cut, red eyes, idol clothes, white and gold dress, tiara, detached sleeves",
+   "scene": "upper body, sparkle, light particles, flower petals, looking at viewer, smile",
+   "secs": 55.2
+  },
+  {
+   "title": "Summer festival yukata",
+   "style": "ll_tv",
+   "body": "none",
+   "seed": 1,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, medium pink hair, low twintails, blue eyes, yukata, floral print, hair flower, @murota yuuhei, cowboy shot, summer festival, night, paper lanterns, fireworks, holding fan, smile",
+   "img": "img/ex04.jpg",
+   "character": "1girl, solo, medium pink hair, low twintails, blue eyes, yukata, floral print, hair flower",
+   "scene": "cowboy shot, summer festival, night, paper lanterns, fireworks, holding fan, smile",
+   "secs": 55.1
+  },
+  {
+   "title": "Rainy afternoon",
+   "style": "ll_tv",
+   "body": "none",
+   "seed": 1,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short blue hair, bob cut, tareme, grey eyes, oversized hoodie, school bag, @murota yuuhei, upper body, rain, transparent umbrella, city street, puddles, wet hair, gentle smile",
+   "img": "img/ex05.jpg",
+   "character": "1girl, solo, short blue hair, bob cut, tareme, grey eyes, oversized hoodie, school bag",
+   "scene": "upper body, rain, transparent umbrella, city street, puddles, wet hair, gentle smile",
+   "secs": 55.2
+  },
+  {
+   "title": "Rooftop at sunset",
+   "style": "ll_tv",
+   "body": "none",
+   "seed": 1,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long brown hair, ponytail, amber eyes, sailor school uniform, red neckerchief, @murota yuuhei, cowboy shot, school rooftop, sunset, orange sky, wind, hair blowing, looking back, smile",
+   "img": "img/ex06.jpg",
+   "character": "1girl, solo, long brown hair, ponytail, amber eyes, sailor school uniform, red neckerchief",
+   "scene": "cowboy shot, school rooftop, sunset, orange sky, wind, hair blowing, looking back, smile",
+   "secs": 55.2
+  },
+  {
+   "title": "Cafe, sitting",
+   "style": "ll_tv",
+   "body": "average_sit",
+   "seed": 2,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, wavy blonde hair, long hair, green eyes, beret, cream sweater, long skirt, @murota yuuhei, full body, sitting, cafe, window, holding cup, latte, warm lighting, smile",
+   "img": "img/ex07.jpg",
+   "character": "1girl, solo, wavy blonde hair, long hair, green eyes, beret, cream sweater, long skirt",
+   "scene": "cafe, window, holding cup, latte, warm lighting, smile",
+   "secs": 56.1
+  },
+  {
+   "title": "Jumping for joy",
+   "style": "ll_tv",
+   "body": "average_jump",
+   "seed": 1,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short orange hair, ahoge, red eyes, sailor school uniform, pleated skirt, @murota yuuhei, full body, jumping, cherry blossoms, petals, blue sky, open mouth, happy",
+   "img": "img/ex08.jpg",
+   "character": "1girl, solo, short orange hair, ahoge, red eyes, sailor school uniform, pleated skirt",
+   "scene": "cherry blossoms, petals, blue sky, open mouth, happy",
+   "secs": 56.3
+  },
+  {
+   "title": "Chibi sticker",
+   "style": "ll_tv",
+   "body": "chibi_idol",
+   "seed": 1,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long purple hair, twin drills, yellow eyes, idol clothes, frills, @murota yuuhei, (chibi:1.8), (super deformed:1.4), full body, simple background, white background, smile, :d",
+   "img": "img/ex09.jpg",
+   "character": "1girl, solo, long purple hair, twin drills, yellow eyes, idol clothes, frills",
+   "scene": "simple background, white background, smile, :d",
+   "secs": 57.2
+  },
+  {
+   "title": "Curvy idol",
+   "style": "ll_tv",
+   "body": "curvy_idol",
+   "seed": 2,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long wavy dark green hair, golden eyes, mole under eye, idol clothes, off-shoulder dress, choker, @murota yuuhei, (curvy:1.6), (wide hips:1.4), thick thighs, large breasts, mature female, full body, concert stage, stage lights, light particles, wink, smile",
+   "img": "img/ex10.jpg",
+   "character": "1girl, solo, long wavy dark green hair, golden eyes, mole under eye, idol clothes, off-shoulder dress, choker",
+   "scene": "concert stage, stage lights, light particles, wink, smile",
+   "secs": 56.1
+  },
+  {
+   "title": "Tall cool girl in the city",
+   "style": "ll_tv",
+   "body": "tall",
+   "seed": 2,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long straight black hair, tsurime, blue eyes, leather jacket, black skirt, boots, @murota yuuhei, (tall female:1.6), (skinny:1.3), long legs, full body, night, city, neon lights, street, serious, looking at viewer",
+   "img": "img/ex11.jpg",
+   "character": "1girl, solo, long straight black hair, tsurime, blue eyes, leather jacket, black skirt, boots",
+   "scene": "night, city, neon lights, street, serious, looking at viewer",
+   "secs": 56.2
+  },
+  {
+   "title": "Soft and cozy winter",
+   "style": "ll_tv",
+   "body": "soft",
+   "seed": 1,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short light brown hair, braid, brown eyes, freckles, red scarf, knit sweater, pleated skirt, black pantyhose, mittens, @murota yuuhei, (plump:1.5), chubby, round face, thick arms, thick thighs, full body, snow, winter, town, christmas lights, blush, smile",
+   "img": "img/ex12.jpg",
+   "character": "1girl, solo, short light brown hair, braid, brown eyes, freckles, red scarf, knit sweater, pleated skirt, black pantyhose, mittens",
+   "scene": "snow, winter, town, christmas lights, blush, smile",
+   "secs": 56.2
+  },
+  {
+   "title": "Athletic dancer",
+   "style": "ll_tv",
+   "body": "athletic_idol",
+   "seed": 2,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts, @murota yuuhei, (toned:1.3), athletic, full body, dance practice room, mirror, sweat, grin",
+   "img": "img/ex13.jpg",
+   "character": "1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts",
+   "scene": "dance practice room, mirror, sweat, grin",
+   "secs": 56.2
+  },
+  {
+   "title": "A face that isn't generic",
+   "style": "ll_tv",
+   "body": "none",
+   "seed": 1,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short black hair, hair intakes, jitome, thick eyebrows, freckles, fang, green eyes, oversized cardigan, school uniform, @murota yuuhei, upper body, classroom, window, afternoon, smug",
+   "img": "img/ex14.jpg",
+   "character": "1girl, solo, short black hair, hair intakes, jitome, thick eyebrows, freckles, fang, green eyes, oversized cardigan, school uniform",
+   "scene": "upper body, classroom, window, afternoon, smug",
+   "secs": 55.2
+  },
+  {
+   "title": "Three idols together",
+   "style": "ll_tv",
+   "body": "none",
+   "seed": 1,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 3girls, idol clothes, matching outfits, red hair, blonde hair, blue hair, @murota yuuhei, concert stage, stage lights, holding hands, smile, open mouth, cowboy shot",
+   "img": "img/ex15.jpg",
+   "character": "3girls, idol clothes, matching outfits, red hair, blonde hair, blue hair",
+   "scene": "concert stage, stage lights, holding hands, smile, open mouth, cowboy shot",
+   "secs": 55.2
+  },
+  {
+   "title": "Canon fan art: You Watanabe",
+   "style": "ll_canon",
+   "body": "none",
+   "seed": 1,
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, love live! sunshine!!, 1girl, solo, watanabe you, uranohoshi school uniform, @murota yuuhei, cowboy shot, seaside, salute, smile, blue sky",
+   "img": "img/ex16.jpg",
+   "character": "1girl, solo, watanabe you, uranohoshi school uniform",
+   "scene": "cowboy shot, seaside, salute, smile, blue sky",
+   "secs": 55.2
+  }
+ ]
+}

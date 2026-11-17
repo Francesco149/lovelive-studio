@@ -29,6 +29,21 @@
    "label": "Love Live! Sunshine!! - canon (series tag)",
    "about": "Adds the show's name. Strongest Love Live look, but it pulls in the show's uniforms, hair and even its characters (a silver-haired girl turns into You). Use it for fan art of the real characters.",
    "template": "masterpiece, best quality, year 2016, anime screenshot, love live! sunshine!!, {character}, @murota yuuhei, {body}, {scene}"
+  },
+  "ll_soft": {
+   "label": "Love Live x kantoku - softer, more detail (experimental)",
+   "about": "A second artist tag (@kantoku) blended with the Love Live designer: softer shading and finer detail, faces still Love Live-ish. Tested on 2 seeds by Claude, not judged by a person yet.",
+   "template": "masterpiece, best quality, year 2016, anime screenshot, {character}, @murota yuuhei, @kantoku, {body}, {scene}"
+  },
+  "ll_watercolor": {
+   "label": "Love Live x fuzichoco - pale watercolour feel (experimental)",
+   "about": "Blend with @fuzichoco: paler, airy colours with a painted feel. Tested on 2 seeds by Claude, not judged by a person yet.",
+   "template": "masterpiece, best quality, year 2016, anime screenshot, {character}, @murota yuuhei, @fuzichoco, {body}, {scene}"
+  },
+  "ll_90s": {
+   "label": "Love Live, 90s anime (experimental)",
+   "about": "The designer tag turned down to 0.6, year 1995 and retro tags: a 1990s TV anime look with sharper faces and darker shading. Tested on 2 seeds by Claude, not judged by a person yet.",
+   "template": "masterpiece, best quality, year 1995, (retro artstyle:1.4), (1990s (style):1.5), {character}, (@murota yuuhei:0.6), {body}, {scene}"
   }
  },
  "bodies": {
@@ -143,7 +158,7 @@
    "scheduler": "simple"
   },
   "draft": {
-   "label": "Quick draft (18 steps)",
+   "label": "Preview (18 steps): same picture as Final with the same seed",
    "model": "anima-aesthetic-v1.1.safetensors",
    "steps": 18,
    "cfg": 4.0,
@@ -151,7 +166,7 @@
    "scheduler": "simple"
   },
   "small": {
-   "label": "Small draft (18 steps, 75% size)",
+   "label": "Small sketch (3x faster, a different picture each time)",
    "model": "anima-aesthetic-v1.1.safetensors",
    "steps": 18,
    "cfg": 4.0,
@@ -160,7 +175,7 @@
    "scale": 0.75
   },
   "turbo": {
-   "label": "Turbo sketch (8 steps, needs the turbo model)",
+   "label": "Turbo sketch (6x faster, weaker Love Live look)",
    "model": "anima-turbo-v1.1.safetensors",
    "steps": 8,
    "cfg": 1.0,
@@ -188,112 +203,128 @@
    "style": "ll_tv",
    "character": "1girl, solo, short silver hair, single braid, purple eyes, white cardigan, sailor school uniform, pleated skirt",
    "body": "none",
-   "scene": "cowboy shot, holding paper cup, seaside railing, ocean, blue sky, smile"
+   "scene": "cowboy shot, holding paper cup, seaside railing, ocean, blue sky, smile",
+   "seed": 1
   },
   {
    "title": "Idol on stage",
    "style": "ll_tv",
    "character": "1girl, solo, long orange hair, side ponytail, green eyes, idol clothes, frilled dress, white gloves, hair ribbon",
    "body": "average_idol",
-   "scene": "concert stage, stage lights, light particles, smile, open mouth"
+   "scene": "concert stage, stage lights, light particles, smile, open mouth",
+   "seed": 2
   },
   {
    "title": "Card art with sparkles",
    "style": "ll_card",
    "character": "1girl, solo, long black hair, hime cut, red eyes, idol clothes, white and gold dress, tiara, detached sleeves",
    "body": "none",
-   "scene": "upper body, sparkle, light particles, flower petals, looking at viewer, smile"
+   "scene": "upper body, sparkle, light particles, flower petals, looking at viewer, smile",
+   "seed": 1
   },
   {
    "title": "Summer festival yukata",
    "style": "ll_tv",
    "character": "1girl, solo, medium pink hair, low twintails, blue eyes, yukata, floral print, hair flower",
    "body": "none",
-   "scene": "cowboy shot, summer festival, night, paper lanterns, fireworks, holding fan, smile"
+   "scene": "cowboy shot, summer festival, night, paper lanterns, fireworks, holding fan, smile",
+   "seed": 1
   },
   {
    "title": "Rainy afternoon",
    "style": "ll_tv",
    "character": "1girl, solo, short blue hair, bob cut, tareme, grey eyes, oversized hoodie, school bag",
    "body": "none",
-   "scene": "upper body, rain, transparent umbrella, city street, puddles, wet hair, gentle smile"
+   "scene": "upper body, rain, transparent umbrella, city street, puddles, wet hair, gentle smile",
+   "seed": 1
   },
   {
    "title": "Rooftop at sunset",
    "style": "ll_tv",
    "character": "1girl, solo, long brown hair, ponytail, amber eyes, sailor school uniform, red neckerchief",
    "body": "none",
-   "scene": "cowboy shot, school rooftop, sunset, orange sky, wind, hair blowing, looking back, smile"
+   "scene": "cowboy shot, school rooftop, sunset, orange sky, wind, hair blowing, looking back, smile",
+   "seed": 1
   },
   {
    "title": "Cafe, sitting",
    "style": "ll_tv",
    "character": "1girl, solo, wavy blonde hair, long hair, green eyes, beret, cream sweater, long skirt",
    "body": "average_sit",
-   "scene": "cafe, window, holding cup, latte, warm lighting, smile"
+   "scene": "cafe, window, holding cup, latte, warm lighting, smile",
+   "seed": 2
   },
   {
    "title": "Jumping for joy",
    "style": "ll_tv",
    "character": "1girl, solo, short orange hair, ahoge, red eyes, sailor school uniform, pleated skirt",
    "body": "average_jump",
-   "scene": "cherry blossoms, petals, blue sky, open mouth, happy"
+   "scene": "cherry blossoms, petals, blue sky, open mouth, happy",
+   "seed": 1
   },
   {
    "title": "Chibi sticker",
    "style": "ll_tv",
    "character": "1girl, solo, long purple hair, twin drills, yellow eyes, idol clothes, frills",
    "body": "chibi_idol",
-   "scene": "simple background, white background, smile, :d"
+   "scene": "simple background, white background, smile, :d",
+   "seed": 1
   },
   {
    "title": "Curvy idol",
    "style": "ll_tv",
    "character": "1girl, solo, long wavy dark green hair, golden eyes, mole under eye, idol clothes, off-shoulder dress, choker",
    "body": "curvy_idol",
-   "scene": "concert stage, stage lights, light particles, wink, smile"
+   "scene": "concert stage, stage lights, light particles, wink, smile",
+   "seed": 2
   },
   {
    "title": "Tall cool girl in the city",
    "style": "ll_tv",
    "character": "1girl, solo, long straight black hair, tsurime, blue eyes, leather jacket, black skirt, boots",
    "body": "tall",
-   "scene": "night, city, neon lights, street, serious, looking at viewer"
+   "scene": "night, city, neon lights, street, serious, looking at viewer",
+   "seed": 2
   },
   {
    "title": "Soft and cozy winter",
    "style": "ll_tv",
-   "character": "1girl, solo, short light brown hair, braid, brown eyes, freckles, red scarf, knit sweater, mittens",
+   "character": "1girl, solo, short light brown hair, braid, brown eyes, freckles, red scarf, knit sweater, pleated skirt, black pantyhose, mittens",
    "body": "soft",
-   "scene": "snow, winter, town, christmas lights, blush, smile"
+   "scene": "snow, winter, town, christmas lights, blush, smile",
+   "seed": 1
   },
   {
    "title": "Athletic dancer",
    "style": "ll_tv",
    "character": "1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts",
    "body": "athletic_idol",
-   "scene": "dance practice room, mirror, sweat, grin"
+   "scene": "dance practice room, mirror, sweat, grin",
+   "seed": 2
   },
   {
    "title": "A face that isn't generic",
    "style": "ll_tv",
-   "character": "1girl, solo, short messy black hair, jitome, thick eyebrows, freckles, mole under eye, fang, green eyes, oversized cardigan",
+   "character": "1girl, solo, short black hair, hair intakes, jitome, thick eyebrows, freckles, fang, green eyes, oversized cardigan, school uniform",
    "body": "none",
-   "scene": "upper body, classroom, window, afternoon, smug"
+   "scene": "upper body, classroom, window, afternoon, smug",
+   "seed": 1
   },
   {
    "title": "Three idols together",
    "style": "ll_tv",
    "character": "3girls, idol clothes, matching outfits, red hair, blonde hair, blue hair",
    "body": "none",
-   "scene": "concert stage, stage lights, holding hands, smile, open mouth, cowboy shot"
+   "scene": "concert stage, stage lights, holding hands, smile, open mouth, cowboy shot",
+   "seed": 1
   },
   {
    "title": "Canon fan art: You Watanabe",
    "style": "ll_canon",
    "character": "1girl, solo, watanabe you, uranohoshi school uniform",
    "body": "none",
-   "scene": "cowboy shot, seaside, salute, smile, blue sky"
+   "scene": "cowboy shot, seaside, salute, smile, blue sky",
+   "seed": 1
   }
  ],
  "styles_order_note": "ll_tv first: it is the default and the best tested look."

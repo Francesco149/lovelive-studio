@@ -93,9 +93,12 @@ class H(BaseHTTPRequestHandler):
                 return self.file(os.path.join(HERE, "index.html"))
             if p == "/api/state":
                 s = core.settings()
-                return self.send(200, {"presets": core.presets(), "comfy_up": core.comfy_up(s),
+                P = core.presets()
+                mdir = os.path.join(s.get("data_dir", ""), "models", "diffusion_models")
+                P["quality"] = {k: v for k, v in P["quality"].items() if os.path.exists(os.path.join(mdir, v["model"]))} or P["quality"]
+                return self.send(200, {"presets": P, "comfy_up": core.comfy_up(s),
                                        "machine": {k: s.get(k) for k in ("gpu", "vram_gb", "engine_build", "data_dir")},
-                                       "typical": {q: {b: typical_secs(q, b) for b in ("none", "body")} for q in ("final", "draft")}})
+                                       "typical": {q: {b: typical_secs(q, b) for b in ("none", "body")} for q in P["quality"]}})
             if p == "/api/jobs":
                 with LOCK:
                     out = [{k: v for k, v in e.items()} for e in JOBS[-60:]]
