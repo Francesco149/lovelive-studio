@@ -28,6 +28,17 @@ function Q($list) {
     return @($list | ForEach-Object { if ("$_" -match '\s') { '"' + $_ + '"' } else { "$_" } })
 }
 
+function Launch($exe, $arglist, $wd, $out, $err) {
+    # Start hidden and fully detached. Win32_Process.Create (WMI) makes a process that is not our child: it holds none of
+    # our handles (a caller capturing output, like an agent's shell, would otherwise wait for the engine to exit) and is in
+    # no job object (an ssh session or a tool runner would otherwise kill it when its command ends). It runs until
+    # "start.ps1 -Stop", a reset, or a reboot. cmd.exe does the redirection to the log files.
+    $line = 'cmd.exe /s /c ""' + $exe + '" ' + ((Q $arglist) -join " ") + ' 1>"' + $out + '" 2>"' + $err + '""'
+    $si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ ShowWindow = [uint16]0 }
+    $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = $line; CurrentDirectory = $wd; ProcessStartupInformation = $si }
+    if ($r.ReturnValue -ne 0) { throw ("could not start " + $exe + " (WMI error " + $r.ReturnValue + ")") }
+}
+
 function Stop-Ours {
     # only the processes started from this kit's engine folder
     $procs = Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" | Where-Object { $_.ExecutablePath -eq $Py }
@@ -43,8 +54,7 @@ if (-not (Up "$($S.comfy_url)/system_stats")) {
               "--disable-auto-launch", "--preview-method", "none")
     if ($S.extra_flags) { $cargs += @($S.extra_flags) }
     Write-Host "starting the image engine ..."
-    Start-Process -FilePath $Py -ArgumentList (Q $cargs) -WorkingDirectory $Engine -WindowStyle Hidden `
-        -RedirectStandardOutput (Join-Path $Logs "comfyui.log") -RedirectStandardError (Join-Path $Logs "comfyui.err.log")
+    Launch $Py $cargs $Engine (Join-Path $Logs "comfyui.log") (Join-Path $Logs "comfyui.err.log")
     $t0 = Get-Date
     while (-not (Up "$($S.comfy_url)/system_stats")) {
         if (((Get-Date) - $t0).TotalSeconds -gt 240) {
@@ -55,8 +65,7 @@ if (-not (Up "$($S.comfy_url)/system_stats")) {
     }
 }
 if (-not $NoStudio -and -not (Up "$($S.studio_url)/api/state")) {
-    Start-Process -FilePath $Py -ArgumentList (Q @("-s", (Join-Path $PSScriptRoot "studio\server.py"))) -WorkingDirectory $Repo -WindowStyle Hidden `
-        -RedirectStandardOutput (Join-Path $Logs "studio.log") -RedirectStandardError (Join-Path $Logs "studio.err.log")
+    Launch $Py @("-s", (Join-Path $PSScriptRoot "studio\server.py")) $Repo (Join-Path $Logs "studio.log") (Join-Path $Logs "studio.err.log")
     $t0 = Get-Date
     while (-not (Up "$($S.studio_url)/api/state")) {
         if (((Get-Date) - $t0).TotalSeconds -gt 30) { Write-Host "The Studio page did not start (see studio.err.log)." -ForegroundColor Red; exit 4 }
