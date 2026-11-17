@@ -128,10 +128,11 @@ footer{margin-top:80px;color:var(--mute);font-size:13px}
     <li><a href="#faces"><span>6</span>Avoiding the generic face</a></li>
     <li><a href="#yours"><span>7</span>Make it yours</a></li>
     <li><a href="#examples"><span>8</span>Examples to copy</a></li>
-    <li><a href="#studio"><span>9</span>The Studio and ComfyUI</a></li>
-    <li><a href="#claude"><span>10</span>Working with Claude</a></li>
-    <li><a href="#speed"><span>11</span>Speed on your PC</a></li>
-    <li><a href="#note"><span>12</span>A note on surprises</a></li>
+    <li><a href="#h3"><span>9</span>H3-Image: describe and edit</a></li>
+    <li><a href="#studio"><span>10</span>The Studio and ComfyUI</a></li>
+    <li><a href="#claude"><span>11</span>Working with Claude</a></li>
+    <li><a href="#speed"><span>12</span>Speed on your PC</a></li>
+    <li><a href="#note"><span>13</span>A note on surprises</a></li>
   </ol>
 </nav>
 <main>
@@ -234,17 +235,27 @@ from the show's own screenshots and art on Danbooru. Three tags call it up:</p>
   <li><code>year 2016</code> is when the show aired. The year pulls in that period's colouring and eye style.</li>
   <li><code>anime screenshot</code> asks for a frame from the TV show itself rather than a fan painting.</li>
 </ul>
-<p>The show's own name is <b>left out on purpose</b>. With <code>love live! sunshine!!</code> in the prompt, the model
+<p>The show's own name, <code>love live! sunshine!!</code>, is the fourth ingredient, and the trickiest. It adds the show's
+signature eyes: big, round, with the bright highlight and the pink blush. But it also makes the model draw the show's
+actual characters. The default style, <b>Love Live signature</b>, uses a trick: for the first 70% of the steps the
+prompt leaves the name out, so your girl's hair, face shape, outfit and body are decided as yours. Only for the last
+30% does the name join in, when the model is just finishing eyes, lines and blush.</p>
+<div class="strip c3">
+  <figure><img src="img/face_tv.jpg" alt="TV look face"><figcaption><b>TV look</b> (designer tags only): clean, slightly smaller, grown-up eyes</figcaption></figure>
+  <figure><img src="img/face_signature.jpg" alt="Signature look face"><figcaption><b>Signature</b> (the name for the last 30%): rounder Love Live eyes, same girl</figcaption></figure>
+  <figure><img src="img/face_canon.jpg" alt="Canon face"><figcaption><b>Name all the way</b>: the eyes are perfect, but she has become You Watanabe</figcaption></figure>
+</div>
+<p>Without that trick, with the show's name in the whole prompt, the model starts drawing the show's actual characters. With <code>love live! sunshine!!</code> in the prompt, the model
 starts drawing the show's actual characters. Below, the same prompt for a silver-haired girl of our own was run in
 each style, with two seeds:</p>
 <div class="strip c5">
   <figure><img src="img/style_generic.jpg" alt="Generic AI anime"><figcaption><b>No style tags</b> (just "highly detailed, beautiful eyes"): the glossy face every AI anime picture has.</figcaption></figure>
-  <figure><img src="img/style_tv.jpg" alt="Love Live TV look"><figcaption><b>TV look</b> <code>ll_tv</code>: clearly Love Live, still our own girl. The default.</figcaption></figure>
+  <figure><img src="img/style_tv.jpg" alt="Love Live TV look"><figcaption><b>TV look</b> <code>ll_tv</code>: clearly Love Live, still our own girl.</figcaption></figure>
   <figure><img src="img/style_card.jpg" alt="Card art look"><figcaption><b>Card look</b> <code>ll_card</code>: <code>official art</code> instead of <code>anime screenshot</code>. Softer, like a game card.</figcaption></figure>
   <figure><img src="img/style_2020.jpg" alt="Year 2020"><figcaption><b>Year 2020</b> <code>ll_2020</code>: a little crisper and newer.</figcaption></figure>
   <figure><img src="img/style_canon.jpg" alt="Series tag turns her into You"><figcaption><b>With the show's name</b> <code>ll_canon</code>: she turns into You Watanabe, uniform and all. Use it for fan art of the real characters.</figcaption></figure>
 </div>
-<div class="box tip"><h4>The one rule</h4>The Love Live look comes from the designer tag. Keep <code>@murota yuuhei</code> in every prompt, and
+<div class="box tip"><h4>The one rule</h4>The Love Live look comes from the designer tag (and the signature trick). Keep <code>@murota yuuhei</code> in every prompt, and
 leave words like "highly detailed" or "beautiful eyes" out: they pull the picture back to the generic look.</div>
 
 <h2 id="prompts"><span class="n">4</span>Writing prompts</h2>
@@ -286,11 +297,11 @@ grey picture of a figure with the body and pose you want. The body adapter steer
 the style still comes from the prompt and the outfit and background from your tags.</p>
 <div class="strip c6">
   <figure class="ctl"><img src="img/ctl_average_idol.jpg" alt="Average body, idol pose drawing"><figcaption>average, idol pose</figcaption></figure>
-  <figure class="ctl"><img src="img/ctl_petite_stand.jpg" alt="Petite body drawing"><figcaption>petite</figcaption></figure>
-  <figure class="ctl"><img src="img/ctl_curvy_stand.jpg" alt="Curvy body drawing"><figcaption>curvy</figcaption></figure>
-  <figure class="ctl"><img src="img/ctl_tall_stand.jpg" alt="Tall body drawing"><figcaption>tall</figcaption></figure>
-  <figure class="ctl"><img src="img/ctl_soft_stand.jpg" alt="Soft body drawing"><figcaption>soft</figcaption></figure>
-  <figure class="ctl"><img src="img/ctl_chibi_stand.jpg" alt="Chibi body drawing"><figcaption>chibi</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_petite.jpg" alt="Petite body drawing"><figcaption>petite</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_curvy.jpg" alt="Curvy body drawing"><figcaption>curvy</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_tall.jpg" alt="Tall body drawing"><figcaption>tall</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_soft.jpg" alt="Soft body drawing"><figcaption>soft</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_chibi.jpg" alt="Chibi body drawing"><figcaption>chibi</figcaption></figure>
 </div>
 <p>One idol, one stage, one seed, and only the body drawing changes:</p>
 <div class="strip c6">
@@ -302,7 +313,17 @@ the style still comes from the prompt and the outfit and background from your ta
   <figure><img src="img/body_chibi.jpg" alt="Chibi idol"><figcaption><b>chibi</b></figcaption></figure>
 </div>
 <p>The stage, the lights, the orange side ponytail and the Love Live face stay. Only the body changes. The drawings are
-on a plain white background, so they don't drag their own scene in.</p>
+on a plain background, so they don't drag their own scene in.</p>
+<h3>Why the drawing fills its frame</h3>
+<p>The drawing also decides how big she is in the picture. A small figure with lots of empty space around it gives a
+small face, and a small face loses the big Love Live eyes. That's why every drawing fills its frame from head to feet,
+and why each body type also comes as a <b>closer</b> version (thighs up) for the biggest faces:</p>
+<div class="strip c4">
+  <figure><img src="img/frame_small.jpg" alt="Small figure drawing result"><figcaption><b>Small figure</b> in the drawing: small face, stiff pose</figcaption></figure>
+  <figure><img src="img/frame_full.jpg" alt="Fill-frame drawing result"><figcaption><b>Fills the frame</b>: bigger face, natural pose</figcaption></figure>
+  <figure><img src="img/frame_cowboy.jpg" alt="Cowboy drawing result"><figcaption><b>Closer</b> (thighs up): the biggest eyes</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_curvy_cowboy.jpg" alt="The closer curvy drawing"><figcaption>the "curvy, closer" drawing</figcaption></figure>
+</div>
 
 <h3>How strongly to follow the drawing</h3>
 <div class="diagram" role="img" aria-label="Of the 30 steps, the body drawing steers the first 21 (70%), at strength 0.6; the last 9 steps are left free for details.">
@@ -314,18 +335,12 @@ on a plain white background, so they don't drag their own scene in.</p>
 </svg>
 </div>
 <p><b>Strength</b> (the slider under the drawings) is how hard the drawing pulls. <b>0.6</b> is the tested value. At 0.8
-the girl copies more of the drawing: its stiff pose, its plain T-shirt shape, even its hair (the chibi on the right lost
-her side ponytail). Lower values give the prompt more say and the body type less. The drawing also fixes the
+the girl copies more of the drawing: its pose, its plain T-shirt shape, even its hair. Lower values give the prompt more say and the body type less. The drawing also fixes the
 <b>pose</b>, so use the idol / waving / jumping / sitting drawings for livelier pictures, or no drawing at all for the freest poses.</p>
-<div class="strip c4">
-  <figure><img src="img/body_tags_curvy.jpg" alt="Curvy from tags only"><figcaption><b>Curvy, tags only</b>: freer pose, the body follows the words</figcaption></figure>
-  <figure><img src="img/body_curvy.jpg" alt="Curvy with drawing 0.6"><figcaption><b>Curvy, drawing 0.6</b>: the shape exactly, a still pose</figcaption></figure>
-  <figure><img src="img/body_chibi.jpg" alt="Chibi drawing 0.6"><figcaption><b>Chibi, drawing 0.6</b></figcaption></figure>
-  <figure><img src="img/body_chibi_08.jpg" alt="Chibi drawing 0.8"><figcaption><b>Chibi, drawing 0.8</b>: loses the side ponytail</figcaption></figure>
-</div>
-<div class="box tip"><h4>Your own body drawing</h4>Any picture of one figure on a plain background works: a Studio picture of a body you
-like, a pose from a drawing, a 3D mannequin. Ask Claude: <i>"make a body drawing from this picture"</i>. It turns it grey,
-sizes it and adds it to your body menu. Erase the guide lines on a drawn head first, or the model draws them as a fringe
+<div class="box tip"><h4>Your own body drawing</h4>Ask Claude for one in words: <i>"make me a body drawing: short and chubby, about
+5.5 heads tall"</i>. With H3-Image installed (section 9), Claude draws three candidates, you pick one, and it goes into your
+body menu. Any picture of one figure filling a plain background works too: a Studio picture of a body you like, a pose
+from a drawing, a 3D mannequin. Erase the guide lines on a drawn head first, or the model draws them as a fringe
 over one eye.</div>
 
 <h2 id="faces"><span class="n">6</span>Avoiding the generic face</h2>
@@ -387,13 +402,48 @@ shorter and softer". Claude can make a body drawing for it and put both together
 change the hair or the scene, and press <i>Make pictures</i>. Click a picture to see it bigger.</p>
 <div class="ex" id="exgrid"></div>
 
-<h2 id="studio"><span class="n">9</span>The Studio and ComfyUI</h2>
+<h2 id="h3"><span class="n">9</span>H3-Image: describe and edit</h2>
+<p>H3-Image (MiniMax, an optional 29 GB download) is a much bigger model that you talk to in plain sentences. It is not a
+Love Live model: on its own it draws a clean but generic anime look. What it is great at is everything the tag model finds
+hard: scenes where several things happen at once, exact body proportions in words, and <b>editing a picture you already
+made</b> without changing how she is drawn. In the Studio it's the <b>Describe (H3)</b> tab, and <b>Edit with H3</b> in the
+picture viewer.</p>
+<h3>Describing a scene</h3>
+<div class="strip c3">
+  <figure><img src="img/h3_idol.jpg" alt="H3 idol"><figcaption><b>H3</b>, described in sentences: polished, but not the Love Live face</figcaption></figure>
+  <figure><img src="img/h3_umbrella.jpg" alt="H3 umbrella"><figcaption><b>H3</b>: "the taller girl tilts the umbrella toward the shorter one, who holds her sleeve". Exactly that.</figcaption></figure>
+  <figure><img src="img/anima_umbrella.jpg" alt="Anima umbrella"><figcaption><b>Love Live (tags)</b> for the same idea: tags can't say who does what, so it guessed (from behind)</figcaption></figure>
+</div>
+<h3>Editing your Love Live pictures</h3>
+<p>Make the girl in the Love Live style first, then ask H3 to change one thing and keep everything else. The prompt that
+works starts with <i>"Keep the girl from Picture 1 exactly as she is drawn: the same anime style, line art, colours, face,
+hair and body. Change only this: ..."</i> (the Studio fills it in for you).</p>
+<div class="strip c6">
+  <figure><img src="img/h3src_chibi.jpg" alt="Source chibi"><figcaption>made with Love Live signature</figcaption></figure>
+  <figure><img src="img/h3_cake.jpg" alt="Chibi with cake"><figcaption><b>edit</b>: "she now sits at a cafe table hugging a strawberry cake"</figcaption></figure>
+  <figure><img src="img/h3src_curvy.jpg" alt="Source curvy idol"><figcaption>made with Love Live signature</figcaption></figure>
+  <figure><img src="img/h3_beach.jpg" alt="Curvy idol at the beach"><figcaption><b>edit</b>: "on a beach at sunset, white sundress, straw hat"</figcaption></figure>
+  <figure><img src="img/h3src_petite.jpg" alt="Source petite idol"><figcaption>made with Love Live signature</figcaption></figure>
+  <figure><img src="img/h3_headpat.jpg" alt="Anime girl in a real photo getting a headpat"><figcaption><b>edit</b>: into a real photo, a real hand pats her head</figcaption></figure>
+</div>
+<h3>Custom body drawings from a description</h3>
+<div class="strip c5">
+  <figure><img src="img/mb_1.jpg" alt="Candidate 1"><figcaption>"short and soft, about 5.5 heads tall": candidate 1</figcaption></figure>
+  <figure><img src="img/mb_2.jpg" alt="Candidate 2"><figcaption>candidate 2</figcaption></figure>
+  <figure><img src="img/mb_3.jpg" alt="Candidate 3"><figcaption>candidate 3</figcaption></figure>
+  <figure class="ctl"><img src="img/mb_grey.jpg" alt="Grey drawing"><figcaption>picked: turned into a body drawing</figcaption></figure>
+  <figure><img src="img/mb_result.jpg" alt="Love Live picture with the new body"><figcaption>a Love Live picture with it</figcaption></figure>
+</div>
+<p class="hint" style="color:var(--mute)">Tip: describe soft bodies as "chubby all over"; "a round belly" can come out looking pregnant (candidate 3).</p>
+
+<h2 id="studio"><span class="n">10</span>The Studio and ComfyUI</h2>
 <h3>The Studio (your everyday page)</h3>
 <p>Double-click <b>Love Live Studio</b> on your desktop. It opens in your browser:</p>
 <figure><img src="img/studio.jpg" alt="The Studio page: prompt boxes on the left, body drawings, pictures on the right"></figure>
 <ul>
   <li><b>Create</b>: pick a ready-made prompt, style, character, scene, body drawing, then <i>Make pictures</i>. "What the AI reads" shows the full prompt.</li>
   <li>Click any picture: rate it (&#10084;&#65039; &#128077; &#128528; &#128078;), write what you think, <i>Use these settings</i> again, or make <i>4 variations</i>.</li>
+  <li><b>Describe (H3)</b> (if H3-Image is installed): describe a picture in sentences, or edit one you made (section 9).</li>
   <li><b>My pictures</b>: everything you've made, searchable, with a "loved and liked only" filter.</li>
   <li><b>Rounds to judge</b>: test pictures Claude made for you to compare (section 10).</li>
   <li>Your pictures are saved in the Studio's data folder under <code>outputs</code>.</li>
@@ -405,7 +455,7 @@ as boxes and wires. Edit only the pink boxes and press <b>Run</b>. Tip: drag any
 folder onto ComfyUI and it reopens with that picture's exact settings. If you ever mess it up, ask Claude to reset it.</p>
 <figure><img src="img/comfyui.jpg" alt="The Love Live workflow in ComfyUI with pink prompt boxes"></figure>
 
-<h2 id="claude"><span class="n">10</span>Working with Claude</h2>
+<h2 id="claude"><span class="n">11</span>Working with Claude</h2>
 <p>Open Claude, start a Code session in the Studio's folder, and talk normally. Vague is fine:</p>
 <ul class="say">
   <li>"Make her look less generic."</li>
@@ -423,21 +473,22 @@ winner into your <b>recipe book</b> (<code>my/RECIPES.md</code>), notes what you
 if it's reusable, adds it to your menus. Each round makes the next pictures better.</p>
 <p>Claude also keeps everything safe in a history (git) as it goes, so nothing gets lost and any change can be undone.</p>
 
-<h2 id="speed"><span class="n">11</span>Speed on your PC</h2>
+<h2 id="speed"><span class="n">12</span>Speed on your PC</h2>
 <div class="tbl"><table>
   <thead><tr><th>Graphics card</th><th>Final</th><th>Preview</th><th>Small sketch</th><th>Turbo sketch</th></tr></thead>
   <tbody id="speedrows">
   <tr><td>RTX 5060 8 GB (tested)</td><td class="num">56 s</td><td class="num">34 s</td><td class="num">18 s</td><td class="num">9 s</td></tr>
+  <tr><td>RTX 5060, <b>H3-Image</b></td><td class="num" colspan="4">17-25 s described, about 50 s for an edit or right after switching from the Love Live model</td></tr>
   <tr><td>GTX 1070 8 GB (estimate)</td><td class="num">4-5 min</td><td class="num">~2.5 min</td><td class="num">~1.5 min</td><td class="num">~45 s</td></tr>
   </tbody>
 </table></div>
 <p><b>Preview</b> gives almost the same picture as <b>Final</b> with the same seed, so use it to check an idea and then make
 the keeper with Final. <b>Small sketch</b> is a different picture each time, but quick. <b>Turbo sketch</b> (an optional
 download) is the fastest and loses some of the Love Live look: good for trying poses and scenes, not for judging the style.
-The first picture after starting takes about a minute longer while the models load. Close games and video while it
+The first picture after starting takes about a minute longer while the models load. H3-Image is not offered on GTX 10 cards: it is too big for them to run at a usable speed. Close games and video while it
 works: they share the graphics card. The Studio shows "about N seconds per picture" once it has timed a few of yours.</p>
 
-<h2 id="note"><span class="n">12</span>A note on surprises</h2>
+<h2 id="note"><span class="n">13</span>A note on surprises</h2>
 <p>Anime models learned from an enormous collection of internet art, and some of it is revealing. Even an innocent prompt
 (a maid outfit, a swimsuit, a "curvy" body) can now and then come out more revealing than you meant. That's a quirk of the
 training data, not something you did. It stays on your PC; ignore it, delete it, or tell Claude if you'd like it to
@@ -447,7 +498,7 @@ steer away from that in general.</p>
 </main>
 </div>
 <div id="zoom" role="dialog" aria-label="Enlarged picture"><img alt=""></div>
-<script id="exdata" type="application/json">[{"title": "Seaside schoolgirl (the lab's test girl)", "style": "ll_tv", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short silver hair, single braid, purple eyes, white cardigan, sailor school uniform, pleated skirt, @murota yuuhei, cowboy shot, holding paper cup, seaside railing, ocean, blue sky, smile", "img": "img/ex01.jpg", "character": "1girl, solo, short silver hair, single braid, purple eyes, white cardigan, sailor school uniform, pleated skirt", "scene": "cowboy shot, holding paper cup, seaside railing, ocean, blue sky, smile", "secs": 58.3}, {"title": "Idol on stage", "style": "ll_tv", "body": "average_idol", "seed": 2, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long orange hair, side ponytail, green eyes, idol clothes, frilled dress, white gloves, hair ribbon, @murota yuuhei, full body, concert stage, stage lights, light particles, smile, open mouth", "img": "img/ex02.jpg", "character": "1girl, solo, long orange hair, side ponytail, green eyes, idol clothes, frilled dress, white gloves, hair ribbon", "scene": "concert stage, stage lights, light particles, smile, open mouth", "secs": 56.2}, {"title": "Card art with sparkles", "style": "ll_card", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, official art, 1girl, solo, long black hair, hime cut, red eyes, idol clothes, white and gold dress, tiara, detached sleeves, @murota yuuhei, upper body, sparkle, light particles, flower petals, looking at viewer, smile", "img": "img/ex03.jpg", "character": "1girl, solo, long black hair, hime cut, red eyes, idol clothes, white and gold dress, tiara, detached sleeves", "scene": "upper body, sparkle, light particles, flower petals, looking at viewer, smile", "secs": 55.2}, {"title": "Summer festival yukata", "style": "ll_tv", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, medium pink hair, low twintails, blue eyes, yukata, floral print, hair flower, @murota yuuhei, cowboy shot, summer festival, night, paper lanterns, fireworks, holding fan, smile", "img": "img/ex04.jpg", "character": "1girl, solo, medium pink hair, low twintails, blue eyes, yukata, floral print, hair flower", "scene": "cowboy shot, summer festival, night, paper lanterns, fireworks, holding fan, smile", "secs": 55.1}, {"title": "Rainy afternoon", "style": "ll_tv", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short blue hair, bob cut, tareme, grey eyes, oversized hoodie, school bag, @murota yuuhei, upper body, rain, transparent umbrella, city street, puddles, wet hair, gentle smile", "img": "img/ex05.jpg", "character": "1girl, solo, short blue hair, bob cut, tareme, grey eyes, oversized hoodie, school bag", "scene": "upper body, rain, transparent umbrella, city street, puddles, wet hair, gentle smile", "secs": 55.2}, {"title": "Rooftop at sunset", "style": "ll_tv", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long brown hair, ponytail, amber eyes, sailor school uniform, red neckerchief, @murota yuuhei, cowboy shot, school rooftop, sunset, orange sky, wind, hair blowing, looking back, smile", "img": "img/ex06.jpg", "character": "1girl, solo, long brown hair, ponytail, amber eyes, sailor school uniform, red neckerchief", "scene": "cowboy shot, school rooftop, sunset, orange sky, wind, hair blowing, looking back, smile", "secs": 55.2}, {"title": "Cafe, sitting", "style": "ll_tv", "body": "average_sit", "seed": 2, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, wavy blonde hair, long hair, green eyes, beret, cream sweater, long skirt, @murota yuuhei, full body, sitting, cafe, window, holding cup, latte, warm lighting, smile", "img": "img/ex07.jpg", "character": "1girl, solo, wavy blonde hair, long hair, green eyes, beret, cream sweater, long skirt", "scene": "cafe, window, holding cup, latte, warm lighting, smile", "secs": 56.1}, {"title": "Jumping for joy", "style": "ll_tv", "body": "average_jump", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short orange hair, ahoge, red eyes, sailor school uniform, pleated skirt, @murota yuuhei, full body, jumping, cherry blossoms, petals, blue sky, open mouth, happy", "img": "img/ex08.jpg", "character": "1girl, solo, short orange hair, ahoge, red eyes, sailor school uniform, pleated skirt", "scene": "cherry blossoms, petals, blue sky, open mouth, happy", "secs": 56.3}, {"title": "Chibi sticker", "style": "ll_tv", "body": "chibi_idol", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long purple hair, twin drills, yellow eyes, idol clothes, frills, @murota yuuhei, (chibi:1.8), (super deformed:1.4), full body, simple background, white background, smile, :d", "img": "img/ex09.jpg", "character": "1girl, solo, long purple hair, twin drills, yellow eyes, idol clothes, frills", "scene": "simple background, white background, smile, :d", "secs": 57.2}, {"title": "Curvy idol", "style": "ll_tv", "body": "curvy_idol", "seed": 2, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long wavy dark green hair, golden eyes, mole under eye, idol clothes, off-shoulder dress, choker, @murota yuuhei, (curvy:1.6), (wide hips:1.4), thick thighs, large breasts, mature female, full body, concert stage, stage lights, light particles, wink, smile", "img": "img/ex10.jpg", "character": "1girl, solo, long wavy dark green hair, golden eyes, mole under eye, idol clothes, off-shoulder dress, choker", "scene": "concert stage, stage lights, light particles, wink, smile", "secs": 56.1}, {"title": "Tall cool girl in the city", "style": "ll_tv", "body": "tall", "seed": 2, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long straight black hair, tsurime, blue eyes, leather jacket, black skirt, boots, @murota yuuhei, (tall female:1.6), (skinny:1.3), long legs, full body, night, city, neon lights, street, serious, looking at viewer", "img": "img/ex11.jpg", "character": "1girl, solo, long straight black hair, tsurime, blue eyes, leather jacket, black skirt, boots", "scene": "night, city, neon lights, street, serious, looking at viewer", "secs": 56.2}, {"title": "Soft and cozy winter", "style": "ll_tv", "body": "soft", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short light brown hair, braid, brown eyes, freckles, red scarf, knit sweater, pleated skirt, black pantyhose, mittens, @murota yuuhei, (plump:1.5), chubby, round face, thick arms, thick thighs, full body, snow, winter, town, christmas lights, blush, smile", "img": "img/ex12.jpg", "character": "1girl, solo, short light brown hair, braid, brown eyes, freckles, red scarf, knit sweater, pleated skirt, black pantyhose, mittens", "scene": "snow, winter, town, christmas lights, blush, smile", "secs": 56.2}, {"title": "Athletic dancer", "style": "ll_tv", "body": "athletic_idol", "seed": 2, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts, @murota yuuhei, (toned:1.3), athletic, full body, dance practice room, mirror, sweat, grin", "img": "img/ex13.jpg", "character": "1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts", "scene": "dance practice room, mirror, sweat, grin", "secs": 56.2}, {"title": "A face that isn't generic", "style": "ll_tv", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short black hair, hair intakes, jitome, thick eyebrows, freckles, fang, green eyes, oversized cardigan, school uniform, @murota yuuhei, upper body, classroom, window, afternoon, smug", "img": "img/ex14.jpg", "character": "1girl, solo, short black hair, hair intakes, jitome, thick eyebrows, freckles, fang, green eyes, oversized cardigan, school uniform", "scene": "upper body, classroom, window, afternoon, smug", "secs": 55.2}, {"title": "Three idols together", "style": "ll_tv", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 3girls, idol clothes, matching outfits, red hair, blonde hair, blue hair, @murota yuuhei, concert stage, stage lights, holding hands, smile, open mouth, cowboy shot", "img": "img/ex15.jpg", "character": "3girls, idol clothes, matching outfits, red hair, blonde hair, blue hair", "scene": "concert stage, stage lights, holding hands, smile, open mouth, cowboy shot", "secs": 55.2}, {"title": "Canon fan art: You Watanabe", "style": "ll_canon", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, love live! sunshine!!, 1girl, solo, watanabe you, uranohoshi school uniform, @murota yuuhei, cowboy shot, seaside, salute, smile, blue sky", "img": "img/ex16.jpg", "character": "1girl, solo, watanabe you, uranohoshi school uniform", "scene": "cowboy shot, seaside, salute, smile, blue sky", "secs": 55.2}]</script>
+<script id="exdata" type="application/json">[{"title": "Seaside schoolgirl (the lab's test girl)", "style": "ll_signature", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short silver hair, single braid, purple eyes, white cardigan, sailor school uniform, pleated skirt, @murota yuuhei, cowboy shot, holding paper cup, seaside railing, ocean, blue sky, smile", "img": "img/ex01.jpg", "character": "1girl, solo, short silver hair, single braid, purple eyes, white cardigan, sailor school uniform, pleated skirt", "scene": "cowboy shot, holding paper cup, seaside railing, ocean, blue sky, smile", "secs": 64.2}, {"title": "Idol on stage", "style": "ll_signature", "body": "average_idol", "seed": 2, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long orange hair, side ponytail, green eyes, idol clothes, frilled dress, white gloves, hair ribbon, @murota yuuhei, full body, concert stage, stage lights, light particles, smile, open mouth", "img": "img/ex02.jpg", "character": "1girl, solo, long orange hair, side ponytail, green eyes, idol clothes, frilled dress, white gloves, hair ribbon", "scene": "concert stage, stage lights, light particles, smile, open mouth", "secs": 74.2}, {"title": "Card art with sparkles", "style": "ll_card", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, official art, 1girl, solo, long black hair, hime cut, red eyes, idol clothes, white and gold dress, tiara, detached sleeves, @murota yuuhei, upper body, sparkle, light particles, flower petals, looking at viewer, smile", "img": "img/ex03.jpg", "character": "1girl, solo, long black hair, hime cut, red eyes, idol clothes, white and gold dress, tiara, detached sleeves", "scene": "upper body, sparkle, light particles, flower petals, looking at viewer, smile", "secs": 72.2}, {"title": "Summer festival yukata", "style": "ll_signature", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, medium pink hair, low twintails, blue eyes, yukata, floral print, hair flower, @murota yuuhei, cowboy shot, summer festival, night, paper lanterns, fireworks, holding fan, smile", "img": "img/ex04.jpg", "character": "1girl, solo, medium pink hair, low twintails, blue eyes, yukata, floral print, hair flower", "scene": "cowboy shot, summer festival, night, paper lanterns, fireworks, holding fan, smile", "secs": 73.5}, {"title": "Rainy afternoon", "style": "ll_signature", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short blue hair, bob cut, tareme, grey eyes, oversized hoodie, school bag, @murota yuuhei, upper body, rain, transparent umbrella, city street, puddles, wet hair, gentle smile", "img": "img/ex05.jpg", "character": "1girl, solo, short blue hair, bob cut, tareme, grey eyes, oversized hoodie, school bag", "scene": "upper body, rain, transparent umbrella, city street, puddles, wet hair, gentle smile", "secs": 74.4}, {"title": "Rooftop at sunset", "style": "ll_signature", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long brown hair, ponytail, amber eyes, sailor school uniform, red neckerchief, @murota yuuhei, cowboy shot, school rooftop, sunset, orange sky, wind, hair blowing, looking back, smile", "img": "img/ex06.jpg", "character": "1girl, solo, long brown hair, ponytail, amber eyes, sailor school uniform, red neckerchief", "scene": "cowboy shot, school rooftop, sunset, orange sky, wind, hair blowing, looking back, smile", "secs": 74.2}, {"title": "Cafe, sitting", "style": "ll_signature", "body": "average_sit", "seed": 2, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, wavy blonde hair, long hair, green eyes, beret, cream sweater, long skirt, @murota yuuhei, full body, sitting, cafe, window, holding cup, latte, warm lighting, smile", "img": "img/ex07.jpg", "character": "1girl, solo, wavy blonde hair, long hair, green eyes, beret, cream sweater, long skirt", "scene": "cafe, window, holding cup, latte, warm lighting, smile", "secs": 74.4}, {"title": "Jumping for joy", "style": "ll_signature", "body": "average_jump", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short orange hair, ahoge, red eyes, sailor school uniform, pleated skirt, @murota yuuhei, full body, jumping, cherry blossoms, petals, blue sky, open mouth, happy", "img": "img/ex08.jpg", "character": "1girl, solo, short orange hair, ahoge, red eyes, sailor school uniform, pleated skirt", "scene": "cherry blossoms, petals, blue sky, open mouth, happy", "secs": 75.3}, {"title": "Chibi sticker", "style": "ll_signature", "body": "chibi_idol", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long purple hair, twin drills, yellow eyes, idol clothes, frills, @murota yuuhei, (chibi:1.8), (super deformed:1.4), full body, simple background, white background, smile, :d", "img": "img/ex09.jpg", "character": "1girl, solo, long purple hair, twin drills, yellow eyes, idol clothes, frills", "scene": "simple background, white background, smile, :d", "secs": 74.7}, {"title": "Curvy idol", "style": "ll_signature", "body": "curvy_idol", "seed": 2, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long wavy dark green hair, golden eyes, mole under eye, idol clothes, off-shoulder dress, choker, @murota yuuhei, (curvy:1.6), (wide hips:1.4), thick thighs, large breasts, mature female, full body, concert stage, stage lights, light particles, wink, smile", "img": "img/ex10.jpg", "character": "1girl, solo, long wavy dark green hair, golden eyes, mole under eye, idol clothes, off-shoulder dress, choker", "scene": "concert stage, stage lights, light particles, wink, smile", "secs": 74.4}, {"title": "Tall cool girl in the city", "style": "ll_signature", "body": "tall", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, long straight black hair, tsurime, blue eyes, leather jacket, black skirt, boots, @murota yuuhei, (tall female:1.6), (skinny:1.3), long legs, full body, night, city, neon lights, street, serious, looking at viewer", "img": "img/ex11.jpg", "character": "1girl, solo, long straight black hair, tsurime, blue eyes, leather jacket, black skirt, boots", "scene": "night, city, neon lights, street, serious, looking at viewer", "secs": 74.5}, {"title": "Soft and cozy winter", "style": "ll_signature", "body": "soft", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short light brown hair, braid, brown eyes, freckles, red scarf, knit sweater, pleated skirt, black pantyhose, mittens, @murota yuuhei, (plump:1.5), chubby, round face, thick arms, thick thighs, full body, snow, winter, town, christmas lights, blush, smile", "img": "img/ex12.jpg", "character": "1girl, solo, short light brown hair, braid, brown eyes, freckles, red scarf, knit sweater, pleated skirt, black pantyhose, mittens", "scene": "snow, winter, town, christmas lights, blush, smile", "secs": 75.4}, {"title": "Athletic dancer", "style": "ll_signature", "body": "athletic_idol", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts, @murota yuuhei, (toned:1.3), athletic, full body, dance practice room, mirror, sweat, grin", "img": "img/ex13.jpg", "character": "1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts", "scene": "dance practice room, mirror, sweat, grin", "secs": 75.4}, {"title": "A face that isn't generic", "style": "ll_signature", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short black hair, hair intakes, jitome, thick eyebrows, freckles, fang, green eyes, oversized cardigan, school uniform, @murota yuuhei, upper body, classroom, window, afternoon, smug", "img": "img/ex14.jpg", "character": "1girl, solo, short black hair, hair intakes, jitome, thick eyebrows, freckles, fang, green eyes, oversized cardigan, school uniform", "scene": "upper body, classroom, window, afternoon, smug", "secs": 73.4}, {"title": "Three idols together", "style": "ll_signature", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, 3girls, idol clothes, matching outfits, red hair, blonde hair, blue hair, @murota yuuhei, concert stage, stage lights, holding hands, smile, open mouth, cowboy shot", "img": "img/ex15.jpg", "character": "3girls, idol clothes, matching outfits, red hair, blonde hair, blue hair", "scene": "concert stage, stage lights, holding hands, smile, open mouth, cowboy shot", "secs": 74.3}, {"title": "Canon fan art: You Watanabe", "style": "ll_canon", "body": "none", "seed": 1, "prompt": "masterpiece, best quality, year 2016, anime screenshot, love live! sunshine!!, 1girl, solo, watanabe you, uranohoshi school uniform, @murota yuuhei, cowboy shot, seaside, salute, smile, blue sky", "img": "img/ex16.jpg", "character": "1girl, solo, watanabe you, uranohoshi school uniform", "scene": "cowboy shot, seaside, salute, smile, blue sky", "secs": 71.2}]</script>
 <script id="tunedata" type="application/json">[{"img": "img/tune_00.jpg", "label": "Love Live TV look", "note": "the starting point"}, {"img": "img/tune_01.jpg", "label": "year 2023", "note": "brighter, sharper"}, {"img": "img/tune_02.jpg", "label": "official art", "note": "card look"}, {"img": "img/tune_03.jpg", "label": "Anima Base model", "note": "flatter cel colour"}, {"img": "img/tune_04.jpg", "label": "90s anime", "note": "designer 0.6, year 1995, retro tags"}, {"img": "img/tune_05.jpg", "label": "Base + retro tags", "note": ""}, {"img": "img/tune_06.jpg", "label": "+ @kantoku", "note": "softer, more detail"}, {"img": "img/tune_07.jpg", "label": "+ @fuzichoco", "note": "pale, painted"}, {"img": "img/tune_08.jpg", "label": "+ @ikeda kazumi", "note": "KyoAni-like"}, {"img": "img/tune_09.jpg", "label": "+ @ixy", "note": ""}, {"img": "img/tune_10.jpg", "label": "+ @mignon", "note": ""}, {"img": "img/tune_11.jpg", "label": "pastel colors", "note": "hardly changes it"}]</script>
 <script>
 (function(){
