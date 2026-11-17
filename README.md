@@ -12,7 +12,7 @@ want.
 2. Open the app, go to the **Code** tab and start a session in your **Documents** folder (or any folder you like).
 3. Paste this message and press Enter:
 
-   > Please download the Love Live Studio from **&lt;the link you were given&gt;** into this folder and set it up for me
+   > Please download the Love Live Studio from **https://github.com/Francesco149/lovelive-studio** into this folder and set it up for me
    > by following its CLAUDE.md. I'm not technical, so please do everything for me and explain as you go.
 
    If you got the Studio as a zip file instead, unzip it, start the Code session **inside** the unzipped folder and say:
