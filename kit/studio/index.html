@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Love Live Studio</title>
+<style>
+:root{--bg:#fff7fb;--card:#fff;--ink:#2b2233;--mute:#7a6d85;--line:#ecdfe9;--accent:#e4508f;--accent2:#5b8def;--ok:#2e9d62;--bad:#c94a4a;--shadow:0 2px 10px rgba(80,30,70,.08)}
+@media (prefers-color-scheme:dark){:root{--bg:#1c1720;--card:#272030;--ink:#f3eaf6;--mute:#b3a6bd;--line:#3a3044;--shadow:none}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Segoe UI",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:18px;padding:10px 18px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header h1{font-size:18px;margin:0;color:var(--accent)}
+nav button{background:none;border:0;padding:8px 12px;font:inherit;color:var(--mute);cursor:pointer;border-radius:8px}
+nav button.on{background:var(--bg);color:var(--ink);font-weight:600}
+#engine{margin-left:auto;font-size:13px;color:var(--mute)}
+#engine.down{color:var(--bad);font-weight:600}
+main{padding:16px;max-width:1400px;margin:0 auto}
+.panel{display:none}.panel.on{display:block}
+.grid2{display:grid;grid-template-columns:minmax(320px,460px) 1fr;gap:18px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+label.h{display:block;font-weight:600;margin:12px 0 4px}
+label.h small{font-weight:400;color:var(--mute)}
+textarea,select,input[type=text],input[type=number]{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+textarea{min-height:64px;resize:vertical}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+.bodies{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px;max-height:260px;overflow:auto;padding:2px}
+.body{border:2px solid var(--line);border-radius:8px;padding:2px;cursor:pointer;text-align:center;font-size:11px;background:#fff;color:#333}
+.body img{width:100%;aspect-ratio:2/3;object-fit:contain;display:block}
+.body .none{aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;color:#888;font-size:11px}
+.body.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+button.go{width:100%;margin-top:14px;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#fff;font:600 17px "Segoe UI",sans-serif;cursor:pointer}
+button.go:disabled{opacity:.5}
+button.s{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:5px 10px;font:inherit;cursor:pointer}
+button.s:hover{border-color:var(--accent)}
+details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
+.mono{font:12px/1.4 Consolas,monospace;white-space:pre-wrap;background:var(--bg);padding:8px;border-radius:8px;border:1px solid var(--line)}
+.hint{color:var(--mute);font-size:13px}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.thumb{position:relative;cursor:pointer;border-radius:10px;overflow:hidden;background:var(--line)}
+.thumb img{width:100%;display:block;aspect-ratio:2/3;object-fit:cover}
+.thumb .tag{position:absolute;left:6px;top:6px;background:rgba(0,0,0,.55);color:#fff;border-radius:6px;padding:1px 6px;font-size:12px}
+.thumb .rate{position:absolute;right:6px;top:6px;font-size:18px}
+.job{display:flex;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.job:last-child{border:0}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--mute);flex:none}
+.dot.running{background:var(--accent);animation:p 1s infinite alternate}.dot.done{background:var(--ok)}.dot.error{background:var(--bad)}
+@keyframes p{to{opacity:.3}}
+#lb{position:fixed;inset:0;background:rgba(10,5,15,.88);display:none;z-index:20;padding:16px}
+#lb.on{display:flex;gap:16px}
+#lb img{max-height:calc(100vh - 32px);max-width:calc(100vw - 420px);object-fit:contain;margin:auto}
+#lb .side{width:360px;background:var(--card);border-radius:12px;padding:14px;overflow:auto;max-height:calc(100vh - 32px)}
+@media (max-width:900px){#lb.on{flex-direction:column}#lb img{max-width:100%;max-height:60vh}#lb .side{width:auto}}
+.rates button{font-size:20px;padding:6px 12px}
+.rates button.on{border-color:var(--accent);background:var(--bg)}
+.round{margin-bottom:22px}
+.round h3{margin:0 0 4px}
+.empty{color:var(--mute);padding:30px;text-align:center}
+.pill{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:1px 9px;font-size:12px;color:var(--mute);margin-right:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>&#10022; Love Live Studio</h1>
+  <nav>
+    <button data-p="create" class="on">Create</button>
+    <button data-p="gallery">My pictures</button>
+    <button data-p="rounds">Rounds to judge</button>
+    <button onclick="window.open('/guide/','_blank')">Guide</button>
+  </nav>
+  <span id="engine">checking engine&hellip;</span>
+</header>
+<main>
+<section id="create" class="panel on">
+ <div class="grid2">
+  <div class="card">
+    <label class="h">Start from a ready-made prompt <small>(then change anything you like)</small></label>
+    <select id="example"></select>
+    <label class="h">Style</label>
+    <select id="style"></select>
+    <div class="hint" id="styleAbout"></div>
+    <label class="h">Character <small>who: hair, eyes, clothes, face details</small></label>
+    <textarea id="character"></textarea>
+    <label class="h">Scene <small>where, what she does, framing</small></label>
+    <textarea id="scene"></textarea>
+    <label class="h">Body type and pose <small>picked by a grey drawing</small></label>
+    <div class="bodies" id="bodies"></div>
+    <div id="strengthRow" class="row" style="margin-top:8px">
+      <span class="hint" style="flex:0 0 auto">How strongly to follow the drawing</span>
+      <input type="range" id="strength" min="0.3" max="0.9" step="0.05" value="0.6">
+      <span id="strengthV" style="flex:0 0 40px">0.6</span>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <div><label class="h">Shape</label><select id="framing"></select></div>
+      <div><label class="h">Quality</label><select id="quality"></select></div>
+    </div>
+    <div class="row">
+      <div><label class="h">How many</label><input type="number" id="count" min="1" max="8" value="2"></div>
+      <div><label class="h">Seed <small>blank = new</small></label><input type="text" id="seed" placeholder="random"></div>
+    </div>
+    <details><summary>Things to avoid (negative prompt)</summary>
+      <textarea id="extra_neg" placeholder="e.g. hat, glasses"></textarea></details>
+    <details><summary>What the AI reads (full prompt)</summary><div class="mono" id="preview"></div></details>
+    <button class="go" id="go">Make pictures</button>
+    <div class="hint" id="eta" style="margin-top:6px"></div>
+  </div>
+  <div>
+    <div class="card" id="jobsCard" style="margin-bottom:14px;display:none"><b>Working on</b><div id="jobs"></div></div>
+    <div class="card"><b>Just made</b> <span class="hint">click a picture to rate it, keep its settings or make variations</span>
+      <div class="thumbs" id="recent" style="margin-top:10px"></div></div>
+  </div>
+ </div>
+</section>
+
+<section id="gallery" class="panel">
+  <div class="row" style="margin-bottom:12px;max-width:600px">
+    <select id="gfilter"><option value="all">All pictures</option><option value="fav">Only the ones I loved or liked</option></select>
+    <input type="text" id="gsearch" placeholder="search the prompts (e.g. curvy, stage)">
+  </div>
+  <div class="thumbs" id="gal"></div>
+</section>
+
+<section id="rounds" class="panel"><div id="roundList"></div></section>
+</main>
+
+<div id="lb">
+  <img id="lbImg" alt="">
+  <div class="side">
+    <div class="row" style="justify-content:space-between"><b id="lbTitle"></b><button class="s" style="flex:0" onclick="closeLb()">Close &#10005;</button></div>
+    <div class="rates row" style="margin:10px 0">
+      <button class="s" data-r="love" title="Love it">&#10084;&#65039;</button>
+      <button class="s" data-r="like" title="Good">&#128077;</button>
+      <button class="s" data-r="meh" title="So-so">&#128528;</button>
+      <button class="s" data-r="no" title="Not this">&#128078;</button>
+    </div>
+    <textarea id="lbNote" placeholder="What do you like or not like about it? (Claude reads this)"></textarea>
+    <button class="s" id="lbSave" style="margin-top:6px">Save note</button>
+    <div class="row" style="margin-top:12px">
+      <button class="s" id="lbReuse">Use these settings</button>
+      <button class="s" id="lbVar">4 variations</button>
+    </div>
+    <div class="row" style="margin-top:6px"><button class="s" id="lbOpen">Open the file</button></div>
+    <details open><summary>Settings</summary><div class="mono" id="lbInfo"></div></details>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let P=null, body="none", hist=[], lbRec=null, seenDone=new Set(), STATE=null;
+const RATE={love:"❤️",like:"👍",meh:"😐",no:"👎"};
+async function api(p,b){const r=await fetch(p,b?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}:{});const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function job(){return{style:$("#style").value,character:$("#character").value,scene:$("#scene").value,body,
+  strength:body==="none"?null:parseFloat($("#strength").value),framing:$("#framing").value,quality:$("#quality").value,
+  seed:$("#seed").value.trim()||null,extra_neg:$("#extra_neg").value}}
+$$("nav button[data-p]").forEach(b=>b.onclick=()=>{$$("nav button").forEach(x=>x.classList.remove("on"));b.classList.add("on");
+  $$(".panel").forEach(p=>p.classList.toggle("on",p.id===b.dataset.p));if(b.dataset.p==="gallery")loadGallery();if(b.dataset.p==="rounds")loadRounds()});
+async function init(){
+  STATE=await api("/api/state");P=STATE.presets;
+  const ex=$("#example");ex.innerHTML='<option value="">— pick one —</option>'+P.examples.map((e,i)=>`<option value="${i}">${esc(e.title)}</option>`).join("");
+  ex.onchange=()=>{const e=P.examples[ex.value];if(e)fill(e)};
+  $("#style").innerHTML=Object.entries(P.styles).map(([k,v])=>`<option value="${k}">${esc(v.label)}</option>`).join("");
+  $("#style").onchange=()=>{$("#styleAbout").textContent=P.styles[$("#style").value].about||"";preview()};
+  $("#framing").innerHTML=Object.keys(P.framing).map(k=>`<option>${k}</option>`).join("");
+  $("#quality").innerHTML=Object.entries(P.quality).map(([k,v])=>`<option value="${k}">${esc(v.label)}</option>`).join("");
+  $("#bodies").innerHTML=Object.entries(P.bodies).map(([k,v])=>`<div class="body" data-b="${k}" title="${esc(v.tags||'')}">${v.control?`<img loading="lazy" src="/control/${v.control}">`:'<div class="none">tags only</div>'}${esc(v.label)}</div>`).join("");
+  $$(".body").forEach(d=>d.onclick=()=>setBody(d.dataset.b));
+  $("#strength").oninput=()=>{$("#strengthV").textContent=$("#strength").value};
+  ["#character","#scene","#extra_neg"].forEach(s=>$(s).addEventListener("input",preview));
+  $("#go").onclick=generate;
+  if(P.examples.length){ex.value=0;fill(P.examples[0])}else setBody("none");
+  $("#styleAbout").textContent=P.styles[$("#style").value].about||"";
+  engine();setInterval(engine,8000);setInterval(pollJobs,1500);
+  hist=await api("/api/history");showRecent();
+}
+function fill(e){if(e.style)$("#style").value=e.style;$("#character").value=e.character||"";$("#scene").value=e.scene||"";
+  $("#extra_neg").value=e.extra_neg||"";if(e.framing)$("#framing").value=e.framing;setBody(e.body||"none");
+  if(e.strength)$("#strength").value=e.strength,$("#strengthV").textContent=e.strength;$("#seed").value=e.seed??"";$("#styleAbout").textContent=P.styles[$("#style").value].about||"";preview()}
+function setBody(b){body=P.bodies[b]?b:"none";$$(".body").forEach(d=>d.classList.toggle("on",d.dataset.b===body));
+  const c=!!P.bodies[body].control;$("#strengthRow").style.display=c?"flex":"none";$("#framing").disabled=c;if(c)$("#framing").value="portrait";
+  if(c&&P.bodies[body].strength){$("#strength").value=P.bodies[body].strength;$("#strengthV").textContent=P.bodies[body].strength}preview();eta()}
+let pvT=0;function preview(){clearTimeout(pvT);pvT=setTimeout(async()=>{try{const r=await api("/api/preview",job());$("#preview").textContent=r.prompt+"\n\nNOT: "+r.negative}catch(e){}},250);eta()}
+function eta(){if(!STATE)return;const t=STATE.typical[$("#quality").value||"final"];const s=t&&t[body==="none"?"none":"body"];
+  $("#eta").textContent=s?`About ${Math.round(s)} seconds per picture on this PC.`:"The first picture after starting takes longer (the models load)."}
+$("#quality").onchange=eta;
+async function engine(){try{STATE=await api("/api/state");const e=$("#engine");e.className=STATE.comfy_up?"":"down";
+  e.textContent=STATE.comfy_up?`engine ready · ${STATE.machine.gpu||""}`:"engine not running: close this tab and start the Studio again";}catch(e){$("#engine").className="down";$("#engine").textContent="Studio not responding"}}
+async function generate(){$("#go").disabled=true;try{await api("/api/generate",Object.assign(job(),{count:parseInt($("#count").value)||1}));$("#jobsCard").style.display="block";pollJobs()}
+  catch(e){alert(e.message)}setTimeout(()=>$("#go").disabled=false,800)}
+async function pollJobs(){let js;try{js=await api("/api/jobs")}catch(e){return}
+  const act=js.filter(j=>j.status==="queued"||j.status==="running"||(j.status==="error"&&Date.now()/1000-j.finished_at<600));
+  $("#jobsCard").style.display=act.length?"block":"none";
+  $("#jobs").innerHTML=act.map(j=>`<div class="job"><span class="dot ${j.status}"></span><span>${j.status==="running"?"drawing… "+Math.round(Date.now()/1000-j.started_at)+" s":j.status==="queued"?"waiting":"<b>problem:</b> "+esc(j.error)}</span><span class="hint">seed ${j.job.seed}</span></div>`).join("");
+  let fresh=false;for(const j of js)if(j.status==="done"&&!seenDone.has(j.id)){seenDone.add(j.id);fresh=true}
+  if(fresh){hist=await api("/api/history");showRecent()}}
+function tile(r,label){return`<div class="thumb" data-f="${esc(r.file)}"><img loading="lazy" src="/img/${encodeURI(r.file)}">${label?`<span class="tag">${esc(label)}</span>`:""}${r.rating?`<span class="rate">${RATE[r.rating]}</span>`:""}</div>`}
+function bind(el,list){el.querySelectorAll(".thumb").forEach(t=>t.onclick=()=>openLb(list.find(r=>r.file===t.dataset.f)||{file:t.dataset.f}))}
+function showRecent(){const l=hist.filter(r=>r.round!=="_selftest").slice(0,12);$("#recent").innerHTML=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">Your pictures will show up here.</div>';bind($("#recent"),l)}
+async function loadGallery(){hist=await api("/api/history");const f=$("#gfilter").value,q=$("#gsearch").value.toLowerCase();
+  const l=hist.filter(r=>r.round!=="_selftest"&&(f==="all"||r.rating==="love"||r.rating==="like")&&(!q||(r.prompt||"").toLowerCase().includes(q)));
+  $("#gal").innerHTML=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">Nothing here yet.</div>';bind($("#gal"),l)}
+$("#gfilter").onchange=loadGallery;$("#gsearch").oninput=loadGallery;
+async function loadRounds(){const rs=await api("/api/rounds");hist=await api("/api/history");const byF=Object.fromEntries(hist.map(r=>[r.file,r]));
+  $("#roundList").innerHTML=rs.length?rs.map(r=>`<div class="round card"><h3>${esc(r.title)}</h3><div class="hint">${esc(r.created||"")} <span class="pill">${esc(r.status||"")}</span></div>
+   ${r.question?`<p><b>Claude asks:</b> ${esc(r.question)}</p>`:""}<div class="thumbs">${(r.items||[]).map((it,i)=>tile(Object.assign({},byF[it.file]||{},{file:it.file}),(i+1)+". "+(it.label||""))).join("")}</div>
+   <label class="h">Your thoughts on this round</label><textarea data-round="${esc(r.id)}" placeholder="Which ones work and why? What should change?"></textarea>
+   <button class="s" data-saveround="${esc(r.id)}" style="margin-top:6px">Send to Claude</button> <span class="hint">then tell Claude "I judged the round"</span></div>`).join(""):'<div class="empty">No rounds yet. Ask Claude to try something out and its test pictures will appear here for you to judge.</div>';
+  rs.forEach(r=>{const box=document.querySelector(`.round textarea[data-round="${CSS.escape(r.id)}"]`);const el=box.closest(".round");bind(el,(r.items||[]).map(it=>Object.assign({},byF[it.file]||{},{file:it.file,label:it.label})))});
+  $$("button[data-saveround]").forEach(b=>b.onclick=async()=>{const id=b.dataset.saveround;const t=document.querySelector(`textarea[data-round="${CSS.escape(id)}"]`);
+    await api("/api/rate",{file:id+"/_round",rating:null,note:t.value});b.textContent="Sent ✓"})}
+function openLb(r){lbRec=r;$("#lbImg").src="/img/"+encodeURI(r.file);$("#lbTitle").textContent=r.label||r.name||r.file;$("#lbNote").value=r.note||"";
+  $$(".rates button").forEach(b=>b.classList.toggle("on",b.dataset.r===r.rating));
+  $("#lbInfo").textContent=r.prompt?`style: ${r.style}\nbody: ${r.body}${r.strength?" ("+r.strength+")":""}\nseed: ${r.seed}  quality: ${r.quality}  ${r.secs||"?"} s\n\n${r.prompt}`:r.file;$("#lb").classList.add("on")}
+function closeLb(){$("#lb").classList.remove("on")}
+$("#lb").onclick=e=>{if(e.target.id==="lb")closeLb()};document.onkeydown=e=>{if(e.key==="Escape")closeLb()};
+$$(".rates button").forEach(b=>b.onclick=async()=>{const r=b.dataset.r===lbRec.rating?null:b.dataset.r;await api("/api/rate",{file:lbRec.file,rating:r||"none",note:""});lbRec.rating=r;
+  $$(".rates button").forEach(x=>x.classList.toggle("on",x.dataset.r===r));hist=await api("/api/history");showRecent()});
+$("#lbSave").onclick=async()=>{await api("/api/rate",{file:lbRec.file,rating:null,note:$("#lbNote").value});$("#lbSave").textContent="Saved ✓";setTimeout(()=>$("#lbSave").textContent="Save note",1500)};
+$("#lbReuse").onclick=()=>{if(!lbRec.prompt)return;fill({style:lbRec.style,character:lbRec.character,scene:lbRec.scene,body:lbRec.body,strength:lbRec.strength,framing:lbRec.framing,extra_neg:lbRec.extra_neg,seed:lbRec.seed});closeLb();$$("nav button")[0].click()};
+$("#lbVar").onclick=async()=>{if(!lbRec.prompt)return;await api("/api/generate",{style:lbRec.style,character:lbRec.character,scene:lbRec.scene,body:lbRec.body,strength:lbRec.strength,framing:lbRec.framing,quality:lbRec.quality,extra_neg:lbRec.extra_neg,count:4});closeLb();$$("nav button")[0].click()};
+$("#lbOpen").onclick=()=>window.open("/img/"+encodeURI(lbRec.file),"_blank");
+init().catch(e=>{document.body.insertAdjacentHTML("afterbegin",`<p style="color:red;padding:10px">Could not load the Studio: ${esc(e.message)}</p>`)});
+</script>
+</body>
+</html>

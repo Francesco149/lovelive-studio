@@ -1,0 +1,250 @@
+{
+ "s1": {
+  "class_type": "PrimitiveStringMultiline",
+  "inputs": {
+   "value": "masterpiece, best quality, year 2016, anime screenshot"
+  },
+  "_meta": {
+   "title": "Style start (don't change)"
+  }
+ },
+ "s2": {
+  "class_type": "PrimitiveStringMultiline",
+  "inputs": {
+   "value": "1girl, solo, short silver hair, single braid, purple eyes, white cardigan, sailor school uniform, pleated skirt"
+  },
+  "_meta": {
+   "title": "Character  (edit me)"
+  }
+ },
+ "s3": {
+  "class_type": "PrimitiveStringMultiline",
+  "inputs": {
+   "value": "@murota yuuhei"
+  },
+  "_meta": {
+   "title": "Style artist (don't change)"
+  }
+ },
+ "s4": {
+  "class_type": "PrimitiveStringMultiline",
+  "inputs": {
+   "value": ""
+  },
+  "_meta": {
+   "title": "Body tags  (edit me)"
+  }
+ },
+ "s5": {
+  "class_type": "PrimitiveStringMultiline",
+  "inputs": {
+   "value": "cowboy shot, holding paper cup, seaside railing, ocean, blue sky, smile"
+  },
+  "_meta": {
+   "title": "Scene  (edit me)"
+  }
+ },
+ "neg": {
+  "class_type": "PrimitiveStringMultiline",
+  "inputs": {
+   "value": "worst quality, low quality, score_1, score_2, score_3, blurry, jpeg artifacts, watermark, text"
+  },
+  "_meta": {
+   "title": "Avoid  (edit me)"
+  }
+ },
+ "c1": {
+  "class_type": "StringConcatenate",
+  "inputs": {
+   "string_a": [
+    "s1",
+    0
+   ],
+   "string_b": [
+    "s2",
+    0
+   ],
+   "delimiter": ", "
+  },
+  "_meta": {
+   "title": "join"
+  }
+ },
+ "c2": {
+  "class_type": "StringConcatenate",
+  "inputs": {
+   "string_a": [
+    "c1",
+    0
+   ],
+   "string_b": [
+    "s3",
+    0
+   ],
+   "delimiter": ", "
+  },
+  "_meta": {
+   "title": "join"
+  }
+ },
+ "c3": {
+  "class_type": "StringConcatenate",
+  "inputs": {
+   "string_a": [
+    "c2",
+    0
+   ],
+   "string_b": [
+    "s4",
+    0
+   ],
+   "delimiter": ", "
+  },
+  "_meta": {
+   "title": "join"
+  }
+ },
+ "c4": {
+  "class_type": "StringConcatenate",
+  "inputs": {
+   "string_a": [
+    "c3",
+    0
+   ],
+   "string_b": [
+    "s5",
+    0
+   ],
+   "delimiter": ", "
+  },
+  "_meta": {
+   "title": "join"
+  }
+ },
+ "1": {
+  "class_type": "UNETLoader",
+  "inputs": {
+   "unet_name": "anima-aesthetic-v1.1.safetensors",
+   "weight_dtype": "default"
+  },
+  "_meta": {
+   "title": "Image model"
+  }
+ },
+ "2": {
+  "class_type": "CLIPLoader",
+  "inputs": {
+   "clip_name": "qwen_3_06b_base.safetensors",
+   "type": "stable_diffusion",
+   "device": "default"
+  },
+  "_meta": {
+   "title": "Text encoder"
+  }
+ },
+ "3": {
+  "class_type": "VAELoader",
+  "inputs": {
+   "vae_name": "qwen_image_vae.safetensors"
+  },
+  "_meta": {
+   "title": "VAE"
+  }
+ },
+ "4": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "clip": [
+    "2",
+    0
+   ],
+   "text": [
+    "c4",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "Prompt"
+  }
+ },
+ "5": {
+  "class_type": "CLIPTextEncode",
+  "inputs": {
+   "clip": [
+    "2",
+    0
+   ],
+   "text": [
+    "neg",
+    0
+   ]
+  },
+  "_meta": {
+   "title": "Negative prompt"
+  }
+ },
+ "6": {
+  "class_type": "EmptyLatentImage",
+  "inputs": {
+   "width": 832,
+   "height": 1248,
+   "batch_size": 1
+  },
+  "_meta": {
+   "title": "Size (keep 832x1248 with a body drawing)"
+  }
+ },
+ "7": {
+  "class_type": "KSampler",
+  "inputs": {
+   "model": [
+    "1",
+    0
+   ],
+   "positive": [
+    "4",
+    0
+   ],
+   "negative": [
+    "5",
+    0
+   ],
+   "latent_image": [
+    "6",
+    0
+   ],
+   "seed": 1,
+   "steps": 30,
+   "cfg": 4.0,
+   "sampler_name": "er_sde",
+   "scheduler": "simple",
+   "denoise": 1.0
+  },
+  "_meta": {
+   "title": "Sampler"
+  }
+ },
+ "8": {
+  "class_type": "VAEDecode",
+  "inputs": {
+   "samples": [
+    "7",
+    0
+   ],
+   "vae": [
+    "3",
+    0
+   ]
+  }
+ },
+ "9": {
+  "class_type": "SaveImage",
+  "inputs": {
+   "images": [
+    "8",
+    0
+   ],
+   "filename_prefix": "comfyui/ll"
+  }
+ }
+}
