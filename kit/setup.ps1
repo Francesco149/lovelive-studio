@@ -21,6 +21,8 @@ $ProgressPreference = "SilentlyContinue"
 $Repo = Split-Path -Parent $PSScriptRoot
 $My = Join-Path $Repo "my"
 $Manifest = Get-Content (Join-Path $PSScriptRoot "manifest.json") -Raw | ConvertFrom-Json
+New-Item -ItemType Directory -Force $My | Out-Null
+try { Start-Transcript -Path (Join-Path $My "setup.log") -Append | Out-Null } catch {}
 
 function Say($msg) { Write-Host ("[setup] " + $msg) }
 function Fail($code, $msg) { Write-Host ("[setup] PROBLEM: " + $msg) -ForegroundColor Red; exit $code }
@@ -181,6 +183,9 @@ foreach ($sub in "loras", "checkpoints") { New-Item -ItemType Directory -Force (
 $wfDst = Join-Path $Engine "ComfyUI\user\default\workflows"
 New-Item -ItemType Directory -Force $wfDst | Out-Null
 Copy-Item (Join-Path $PSScriptRoot "workflows\Love Live*.json") $wfDst -Force -ErrorAction SilentlyContinue
+$ctlDst = Join-Path $DataDir "inputs\studio"
+New-Item -ItemType Directory -Force $ctlDst | Out-Null
+Copy-Item (Join-Path $PSScriptRoot "controls\*.png") $ctlDst -Force   # so ComfyUI's editor lists the body drawings
 
 # ---------------------------------------------------------------- 7. settings
 $flags = @()
