@@ -77,14 +77,14 @@
   },
   "petite_tags": {
    "label": "Petite (words only)",
-   "tags": "(petite:1.6), (short:1.3), small breasts, skinny, full body",
+   "tags": "(petite:1.3), short, small breasts, full body",
    "control": null,
    "thumb": "thumbs/petite.jpg",
    "kind": "words"
   },
   "tall_tags": {
    "label": "Tall (words only)",
-   "tags": "(tall female:1.6), (skinny:1.3), long legs, full body",
+   "tags": "tall female, long legs, full body",
    "control": null,
    "thumb": "thumbs/tall.jpg",
    "kind": "words"
@@ -149,37 +149,37 @@
   },
   "petite": {
    "label": "Petite",
-   "tags": "(petite:1.6), (short:1.3), small breasts, skinny, full body",
+   "tags": "(petite:1.3), short, small breasts, full body",
    "control": "petite.png",
    "kind": "drawing"
   },
   "petite_idol": {
    "label": "Petite, idol pose",
-   "tags": "(petite:1.6), (short:1.3), small breasts, skinny, full body",
+   "tags": "(petite:1.3), short, small breasts, full body",
    "control": "petite_idol.png",
    "kind": "drawing"
   },
   "petite_cowboy": {
    "label": "Petite, closer (thighs up)",
-   "tags": "(petite:1.6), (short:1.3), small breasts, skinny, cowboy shot",
+   "tags": "(petite:1.3), short, small breasts, cowboy shot",
    "control": "petite_cowboy.png",
    "kind": "drawing"
   },
   "tall": {
    "label": "Tall and slender",
-   "tags": "(tall female:1.6), (skinny:1.3), long legs, full body",
+   "tags": "tall female, long legs, full body",
    "control": "tall.png",
    "kind": "drawing"
   },
   "tall_idol": {
    "label": "Tall and slender, idol pose",
-   "tags": "(tall female:1.6), (skinny:1.3), long legs, full body",
+   "tags": "tall female, long legs, full body",
    "control": "tall_idol.png",
    "kind": "drawing"
   },
   "tall_cowboy": {
    "label": "Tall and slender, closer (thighs up)",
-   "tags": "(tall female:1.6), (skinny:1.3), long legs, cowboy shot",
+   "tags": "tall female, long legs, cowboy shot",
    "control": "tall_cowboy.png",
    "kind": "drawing"
   },

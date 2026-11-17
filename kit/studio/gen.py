@@ -202,6 +202,12 @@ def cmd_make_body(a):
         sys.exit("no candidates yet: run without --pick first")
     it = meta["items"][a.pick - 1]
     im = Image.open(core.output_path(it["file"], s)).convert("L").resize((832, 1248), Image.LANCZOS)
+    # remove the head: a drawn face steers the girl's face toward the drawing's face style; with the head band
+    # painted in the background grey the face and hair come only from the Love Live prompt (lab round kt11)
+    cut = a.head_cut if a.head_cut is not None else (0.16 if a.shot == "full" else 0.32)
+    if cut > 0:
+        bgc = int(sum(im.crop((0, 0, 20, 20)).getdata()) / 400)
+        im.paste(bgc, (0, 0, 832, int(1248 * cut)))
     os.makedirs(os.path.join(core.MY, "controls"), exist_ok=True)
     dst = os.path.join(core.MY, "controls", name + ".png")
     im.save(dst)
@@ -292,6 +298,7 @@ def main():
     mb.add_argument("--seeds")
     mb.add_argument("--pick", type=int)
     mb.add_argument("--label")
+    mb.add_argument("--head-cut", dest="head_cut", type=float, help="fraction of the height painted out from the top (default 0.16 full, 0.32 cowboy; ~0.42 for a chibi; 0 keeps the head). Check the saved drawing: no face may be left, raised arms should stay")
     mb.add_argument("--open", action="store_true")
     sh = sp.add_parser("sheet")
     sh.add_argument("round_id")
