@@ -148,7 +148,7 @@ def to_ui(graph, s=None, notes=None, title=None):
         y1 = max(m["pos"][1] + (30 if m["flags"].get("collapsed") else m["size"][1]) for m in ms) + 15
         groups.append({"title": gt, "bounding": [x0, y0, x1 - x0, y1 - y0], "color": col, "font_size": 22, "flags": {}})
     wf = {"last_node_id": nid, "last_link_id": lid, "nodes": allnodes, "links": links, "groups": groups, "config": {},
-          "extra": {"ds": {"scale": 0.7, "offset": [520, 70]}}, "version": 0.4}
+          "extra": {"ds": {"scale": 0.7, "offset": [600, 80]}}, "version": 0.4}
     if title:
         wf["extra"]["studio_title"] = title
     return wf

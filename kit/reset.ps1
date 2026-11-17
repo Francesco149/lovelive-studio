@@ -46,6 +46,8 @@ else {
     $wf = Join-Path $userDir "workflows"
     New-Item -ItemType Directory -Force $wf | Out-Null
     Copy-Item (Join-Path $PSScriptRoot "workflows\Love Live*.json") $wf -Force
+    $cs = Join-Path $Engine "ComfyUI\user\default\comfy.settings.json"
+    if (-not (Test-Path $cs)) { Copy-Item (Join-Path $PSScriptRoot "comfy.settings.json") $cs }   # no first-run template gallery
     $ctl = Join-Path $S.data_dir "inputs\studio"
     New-Item -ItemType Directory -Force $ctl | Out-Null
     Copy-Item (Join-Path $PSScriptRoot "controls\*.png") $ctl -Force

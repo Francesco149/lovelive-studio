@@ -14,7 +14,8 @@ param(
     [string[]]$Optional = @(),
     [ValidateSet("auto", "modern", "pascal")][string]$Build = "auto",
     [switch]$NoShortcut,
-    [switch]$SkipSelftest
+    [switch]$SkipSelftest,
+    [switch]$Use7z   # testing: skip Windows tar and unpack with 7-Zip (what happens on Windows 10)
 )
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
@@ -24,6 +25,11 @@ $Manifest = Get-Content (Join-Path $PSScriptRoot "manifest.json") -Raw | Convert
 New-Item -ItemType Directory -Force $My | Out-Null
 try { Start-Transcript -Path (Join-Path $My "setup.log") -Append | Out-Null } catch {}
 
+function Run-Native {
+    # Windows PowerShell 5.1 turns a native program's stderr into a terminating error under "Stop": relax it for the call
+    $old = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+    try { & $args[0] @($args | Select-Object -Skip 1) } finally { $ErrorActionPreference = $old }
+}
 function Say($msg) { Write-Host ("[setup] " + $msg) }
 function Fail($code, $msg) { Write-Host ("[setup] PROBLEM: " + $msg) -ForegroundColor Red; exit $code }
 
@@ -87,7 +93,7 @@ function Download($url, $dest, $size, $sha) {
     for ($try = 1; $try -le 3; $try++) {
         if (-not (Test-Path $dest) -or (Get-Item $dest).Length -lt $size) {
             Say ("downloading {0} ({1:n1} GB) ..." -f (Split-Path -Leaf $dest), ($size / 1GB))
-            & curl.exe -L --fail --retry 5 --retry-delay 5 -C - -o $dest $url
+            Run-Native curl.exe -L --fail --retry 5 --retry-delay 5 -C - -o $dest $url
             if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 33) { Say "download interrupted (curl $LASTEXITCODE), retrying"; continue }
         }
         $len = (Get-Item $dest).Length
@@ -146,7 +152,7 @@ $vc = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x
 if (-not $vc -or $vc.Installed -ne 1) {
     Say "installing the Microsoft Visual C++ runtime (Windows may ask for permission) ..."
     $vcexe = Join-Path $DataDir "downloads\vc_redist.x64.exe"
-    & curl.exe -L --fail -o $vcexe "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+    Run-Native curl.exe -L --fail -o $vcexe "https://aka.ms/vs/17/release/vc_redist.x64.exe"
     Start-Process -FilePath $vcexe -ArgumentList "/install", "/quiet", "/norestart" -Verb RunAs -Wait
 } else { Say "Visual C++ runtime: ok" }
 
@@ -163,8 +169,21 @@ if (-not (Test-Path $marker) -or (Get-Content $marker -Raw).Trim() -ne $want) {
         Say ("moving the previous engine aside to " + $old); Rename-Item $Engine $old
     }
     Say "unpacking the engine (about a minute) ..."
-    & tar.exe -xf $archive -C $EngineRoot
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path (Join-Path $Engine "python_embeded\python.exe"))) { Fail 13 "unpacking the engine failed" }
+    $ok = $false
+    if (-not $Use7z) {
+        Run-Native tar.exe -xf $archive -C $EngineRoot
+        $ok = ($LASTEXITCODE -eq 0) -and (Test-Path (Join-Path $Engine "python_embeded\python.exe"))
+    }
+    if (-not $ok) {
+        Say "Windows' own unpacker can't open this archive here; using 7-Zip instead"
+        if (Test-Path $Engine) { Remove-Item -Recurse -Force $Engine }
+        $t = $Manifest.tools."7zr"
+        $sz = Join-Path $DataDir "downloads\7zr.exe"
+        Download $t.url $sz ([int64]$t.size) $t.sha256
+        Run-Native $sz x $archive ("-o" + $EngineRoot) -y | Out-Null
+        $ok = ($LASTEXITCODE -eq 0) -and (Test-Path (Join-Path $Engine "python_embeded\python.exe"))
+    }
+    if (-not $ok) { Fail 13 "unpacking the engine failed" }
     Set-Content -Path $marker -Value $want -Encoding ASCII
 } else { Say ("engine " + $want + ": ok") }
 
@@ -183,6 +202,8 @@ foreach ($sub in "loras", "checkpoints") { New-Item -ItemType Directory -Force (
 $wfDst = Join-Path $Engine "ComfyUI\user\default\workflows"
 New-Item -ItemType Directory -Force $wfDst | Out-Null
 Copy-Item (Join-Path $PSScriptRoot "workflows\Love Live*.json") $wfDst -Force -ErrorAction SilentlyContinue
+$cs = Join-Path $Engine "ComfyUI\user\default\comfy.settings.json"
+if (-not (Test-Path $cs)) { Copy-Item (Join-Path $PSScriptRoot "comfy.settings.json") $cs }   # no first-run template gallery
 $ctlDst = Join-Path $DataDir "inputs\studio"
 New-Item -ItemType Directory -Force $ctlDst | Out-Null
 Copy-Item (Join-Path $PSScriptRoot "controls\*.png") $ctlDst -Force   # so ComfyUI's editor lists the body drawings

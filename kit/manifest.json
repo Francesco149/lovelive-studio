@@ -79,5 +79,13 @@
       "sha256": "bd43b7cffe1ed1153d9c41e7beb2f18cb1273eafbaa3af3edd6a173dc90a006e",
       "required": false
     }
-  ]
+  ],
+  "tools": {
+    "7zr": {
+      "for": "unpacking the engine when Windows' own tar cannot (Windows 10's tar has no LZMA support)",
+      "url": "https://github.com/ip7z/7zip/releases/download/26.05/7zr.exe",
+      "size": 602624,
+      "sha256": "9bf582b894dfa665f852d7e9112b02290a1c303c2d95a21fcdc41ffcb03143b7"
+    }
+  }
 }

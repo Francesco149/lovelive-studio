@@ -69,7 +69,7 @@ exactly what they will see and what to press.
   (a rated round, a recipe, a new preset, settings) gets its own small commit with a clear message, at the moment it
   is done. At the start of each session run `git status`; if something is uncommitted from a crash, look at it and
   commit it (or explain and restore it). Never `push` (the remote belongs to the kit's author), never force, never
-  rewrite history. Commit trailer: `Co-Authored-By: Claude <noreply@anthropic.com>`.
+  rewrite history, never `git stash` (a running round or the Studio writes to `my/` at any moment). Commit trailer: `Co-Authored-By: Claude <noreply@anthropic.com>`.
 - **Updates of the kit:** once per session, `git fetch`; if `origin/main` has new commits, tell the user what changed
   (`git log HEAD..origin/main --oneline`) and offer to update (`git pull --no-edit`). After an update that touches
   `kit/manifest.json`, run setup again (it only downloads what changed).
