@@ -115,13 +115,17 @@ exactly what they will see and what to press.
   kit author's reference batch. Curvy comes young (signature style) or grown-up (`mature female` + the `ll_tv` style:
   older face, fuller figure). Athletic: `athletic, toned, slim, small waist` with `muscular, muscular female, biceps` in
   the body's negative (a `neg` field in presets) so no six-pack; never `abs` or `(toned:1.3)`. Use a **drawing** when
-  the pose must be exact, the words don't reach the body (petite is weak in words), or a character must keep the same
+  the pose must be exact, the words don't reach the body (petite in words is gentle: `(petite:1.3), short, small breasts`; heavier weights or `skinny` look starved), or a character must keep the same
   body across pictures. The guide's section 5 shows both side by side with their limits.
 - **Body drawing details:** a grey drawing of a body (`kit/controls/`, picked in the Studio) goes through the
   **LLLite "any-test" adapter** at strength 0.6, active for the first 70% of the steps. It copies the proportions and
   pose. The style still comes from the prompt, and the background and clothes from the scene tags. Keep matching body tags in the
   prompt too. Higher strength copies the drawing's outfit and stiffness; lower gives the prompt more say. Without a
   drawing, poses are freer but body types other than chibi/curvy/tall follow the tags only loosely (petite is weak).
+  **Drawings have no head**: a drawn face pulls her face toward the drawing's face (narrower, its bangs and tilt), even
+  with the drawing released at 40% of the steps (tested), so the head band is painted out in the background grey
+  (`make-body` does it; `--head-cut`). Raised-arm poses (the jumps) keep their heads. Check every new drawing: no
+  face may be left.
   **The figure must fill the drawing** (head near the top edge, feet near the bottom): a small figure with lots of
   white space makes a small face with small eyes, which loses the Love Live look. The `_cowboy` drawings (thighs up)
   give the biggest faces.

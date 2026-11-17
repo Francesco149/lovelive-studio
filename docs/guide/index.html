@@ -354,16 +354,22 @@ The style still comes from the prompt, and the outfit and background from your t
   </tbody>
 </table></div>
 
-<h3>Why the drawing fills its frame</h3>
-<p>The drawing also decides how big she is in the picture. A small figure with lots of empty space around it gives a
-small face, and a small face loses the big Love Live eyes. That's why every drawing fills its frame from head to feet,
-and why each body type also comes as a <b>closer</b> version (thighs up) for the biggest faces:</p>
-<div class="strip c4">
-  <figure><img src="img/frame_small.jpg" alt="Small figure drawing result"><figcaption><b>Small figure</b> in the drawing: small face, stiff pose</figcaption></figure>
-  <figure><img src="img/frame_full.jpg" alt="Fill-frame drawing result"><figcaption><b>Fills the frame</b>: bigger face, natural pose</figcaption></figure>
-  <figure><img src="img/frame_cowboy.jpg" alt="Cowboy drawing result"><figcaption><b>Closer</b> (thighs up): the biggest eyes</figcaption></figure>
-  <figure class="ctl"><img src="img/ctl_curvy_cowboy.jpg" alt="The closer curvy drawing"><figcaption>the "curvy, closer" drawing</figcaption></figure>
+<h3>Why the drawings have no heads</h3>
+<p>The adapter copies everything in the drawing, including the face. A drawn face pulls her face toward the drawing's
+face style: narrower, with the drawing's bangs and head tilt, instead of the round Love Live face. So every drawing has
+its head painted out. The body and pose still come from the drawing; the face and hair come only from your prompt.
+(The two jumping drawings keep their heads, because their arms are raised above them.)</p>
+<div class="strip c5">
+  <figure class="ctl"><img src="img/hl_drawing_old.jpg" alt="Drawing with a face"><figcaption>a drawing <b>with</b> a face</figcaption></figure>
+  <figure><img src="img/hl_face_old.jpg" alt="Face from a drawing with a face"><figcaption>her face takes on the drawing's face</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_curvy_cowboy.jpg" alt="Headless drawing"><figcaption>the same drawing, <b>head painted out</b></figcaption></figure>
+  <figure><img src="img/hl_face_new.jpg" alt="Face from a headless drawing"><figcaption>the Love Live face is back</figcaption></figure>
+  <figure><img src="img/hl_face_words.jpg" alt="Face from words only"><figcaption>for comparison: words only, no drawing</figcaption></figure>
 </div>
+<p>Each body type also comes as a <b>closer</b> drawing (thighs up), for bigger faces and eyes. The drawings fill
+their frame from neck to feet: a small figure in lots of empty space would make her small in the picture, and a small
+face loses the big Love Live eyes.</p>
+<figure style="max-width:260px"><img src="img/hl_result.jpg" alt="Curvy, closer drawing result"><figcaption>"curvy, closer"</figcaption></figure>
 
 <h3>How strongly to follow the drawing</h3>
 <div class="diagram" role="img" aria-label="Of the 30 steps, the body drawing steers the first 21 (70%), at strength 0.6; the last 9 steps are left free for details.">
