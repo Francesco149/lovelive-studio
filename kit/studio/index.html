@@ -66,6 +66,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
   <h1>&#10022; Love Live Studio</h1>
   <nav>
     <button data-p="create" class="on">Create</button>
+    <button data-p="h3" id="h3tab" hidden>Describe (H3)</button>
     <button data-p="gallery">My pictures</button>
     <button data-p="rounds">Rounds to judge</button>
     <button onclick="window.open('/guide/','_blank')">Guide</button>
@@ -114,6 +115,29 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
  </div>
 </section>
 
+<section id="h3" class="panel">
+ <div class="grid2">
+  <div class="card">
+    <p class="hint" style="margin-top:0">H3-Image draws what you <b>describe in plain sentences</b>. It follows long descriptions, body
+      proportions ("about 6 heads tall") and poses very well, and it can <b>edit a picture</b> you made: keep her exactly as she is
+      and change the place, outfit or pose. On its own its style is a generic anime look, so for the Love Live look make the
+      girl on the Create tab first, then edit her here.</p>
+    <label class="h">Describe the picture</label>
+    <textarea id="h3prompt" style="min-height:140px" placeholder="A cheerful anime idol girl with long orange hair in a side ponytail, singing on a concert stage..."></textarea>
+    <label class="h">Pictures to edit <small>(open a picture and press "Edit with H3"; call them Picture 1 / Picture 2)</small></label>
+    <div id="h3imgs" class="row" style="flex-wrap:wrap"></div>
+    <div class="row">
+      <div><label class="h">Shape</label><select id="h3framing"></select></div>
+      <div><label class="h">How many</label><input type="number" id="h3count" min="1" max="6" value="2"></div>
+      <div><label class="h">Seed</label><input type="text" id="h3seed" placeholder="random"></div>
+    </div>
+    <button class="go" id="h3go">Make pictures with H3</button>
+    <div class="hint" id="h3eta" style="margin-top:6px"></div>
+  </div>
+  <div class="card"><b>Just made</b><div class="thumbs" id="recent2" style="margin-top:10px"></div></div>
+ </div>
+</section>
+
 <section id="gallery" class="panel">
   <div class="row" style="margin-bottom:12px;max-width:600px">
     <select id="gfilter"><option value="all">All pictures</option><option value="fav">Only the ones I loved or liked</option></select>
@@ -141,6 +165,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
       <button class="s" id="lbReuse">Use these settings</button>
       <button class="s" id="lbVar">4 variations</button>
     </div>
+    <div class="row" style="margin-top:6px" id="lbH3row" hidden><button class="s" id="lbH3">Edit with H3</button></div>
     <div class="row" style="margin-top:6px"><button class="s" id="lbOpen">Open the file</button></div>
     <details open><summary>Settings</summary><div class="mono" id="lbInfo"></div></details>
   </div>
@@ -172,7 +197,10 @@ async function init(){
   $("#go").onclick=generate;
   if(P.examples.length){ex.value=0;fill(P.examples[0])}else setBody("none");
   $("#styleAbout").textContent=P.styles[$("#style").value].about||"";
+  if(STATE.h3_ready&&P.h3){$("#h3tab").hidden=false;$("#h3framing").innerHTML=Object.keys(P.h3.sizes).map(k=>`<option>${k}</option>`).join("");showH3imgs();h3eta()}
   engine();setInterval(engine,8000);setInterval(pollJobs,1500);
+  const tab=()=>{const h=location.hash.slice(1);const b=document.querySelector(`nav button[data-p="${["rounds","gallery","h3"].includes(h)?h:"create"}"]`);if(b)b.click()};
+  window.addEventListener("hashchange",tab);if(location.hash)tab();
   hist=await api("/api/history");showRecent();
 }
 function fill(e){if(e.style)$("#style").value=e.style;$("#character").value=e.character||"";$("#scene").value=e.scene||"";
@@ -181,7 +209,7 @@ function fill(e){if(e.style)$("#style").value=e.style;$("#character").value=e.ch
 function setBody(b){body=P.bodies[b]?b:"none";$$(".body").forEach(d=>d.classList.toggle("on",d.dataset.b===body));
   const c=!!P.bodies[body].control;$("#strengthRow").style.display=c?"flex":"none";$("#framing").disabled=c;if(c)$("#framing").value="portrait";
   if(c&&P.bodies[body].strength){$("#strength").value=P.bodies[body].strength;$("#strengthV").textContent=P.bodies[body].strength}preview();eta()}
-let pvT=0;function preview(){clearTimeout(pvT);pvT=setTimeout(async()=>{try{const r=await api("/api/preview",job());$("#preview").textContent=r.prompt+"\n\nNOT: "+r.negative}catch(e){}},250);eta()}
+let pvT=0;function preview(){clearTimeout(pvT);pvT=setTimeout(async()=>{try{const r=await api("/api/preview",job());$("#preview").textContent=r.prompt+(r.late?"\n\nLAST STEPS: "+r.late:"")+"\n\nNOT: "+r.negative}catch(e){}},250);eta()}
 function eta(){if(!STATE)return;const t=STATE.typical[$("#quality").value||"final"];const s=t&&t[body==="none"?"none":"body"];
   $("#eta").textContent=s?`About ${Math.round(s)} seconds per picture on this PC.`:"The first picture after starting takes longer (the models load)."}
 $("#quality").onchange=eta;
@@ -197,7 +225,15 @@ async function pollJobs(){let js;try{js=await api("/api/jobs")}catch(e){return}
   if(fresh){hist=await api("/api/history");showRecent()}}
 function tile(r,label){return`<div class="thumb" data-f="${esc(r.file)}"><img loading="lazy" src="/img/${encodeURI(r.file)}">${label?`<span class="tag">${esc(label)}</span>`:""}${r.rating?`<span class="rate">${RATE[r.rating]}</span>`:""}</div>`}
 function bind(el,list){el.querySelectorAll(".thumb").forEach(t=>t.onclick=()=>openLb(list.find(r=>r.file===t.dataset.f)||{file:t.dataset.f}))}
-function showRecent(){const l=hist.filter(r=>r.round!=="_selftest").slice(0,12);$("#recent").innerHTML=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">Your pictures will show up here.</div>';bind($("#recent"),l)}
+function showRecent(){const l=hist.filter(r=>r.round!=="_selftest").slice(0,12);const h=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">Your pictures will show up here.</div>';
+  $("#recent").innerHTML=h;bind($("#recent"),l);$("#recent2").innerHTML=h;bind($("#recent2"),l)}
+let h3imgs=[];
+function showH3imgs(){$("#h3imgs").innerHTML=h3imgs.length?h3imgs.map((f,i)=>`<div class="thumb" style="flex:0 0 90px"><img src="/img/${encodeURI(f)}"><span class="tag">Picture ${i+1}</span><span class="rate" data-x="${i}" style="cursor:pointer">\u2715</span></div>`).join(""):'<span class="hint">none: a new picture from the description</span>';
+  $$("#h3imgs .rate").forEach(x=>x.onclick=e=>{e.stopPropagation();h3imgs.splice(+x.dataset.x,1);showH3imgs()})}
+function h3eta(){const t=STATE&&STATE.typical.h3;$("#h3eta").textContent=t&&t.none?`About ${Math.round(t.none)} seconds per picture on this PC.`:"H3 is big: the first picture loads about 29 GB of model files, so it takes a few minutes."}
+$("#h3go").onclick=async()=>{const p=$("#h3prompt").value.trim();if(!p){alert("Describe the picture first.");return}$("#h3go").disabled=true;
+  try{await api("/api/generate",{engine:"h3",prompt:p,images:h3imgs.map(f=>"out:"+f),framing:$("#h3framing").value,seed:$("#h3seed").value.trim()||null,count:parseInt($("#h3count").value)||1});$("#jobsCard").style.display="block";pollJobs()}
+  catch(e){alert(e.message)}setTimeout(()=>$("#h3go").disabled=false,800)};
 async function loadGallery(){hist=await api("/api/history");const f=$("#gfilter").value,q=$("#gsearch").value.toLowerCase();
   const l=hist.filter(r=>r.round!=="_selftest"&&(f==="all"||r.rating==="love"||r.rating==="like")&&(!q||(r.prompt||"").toLowerCase().includes(q)));
   $("#gal").innerHTML=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">Nothing here yet.</div>';bind($("#gal"),l)}
@@ -210,7 +246,7 @@ async function loadRounds(){const rs=await api("/api/rounds");hist=await api("/a
   rs.forEach(r=>{const box=document.querySelector(`.round textarea[data-round="${CSS.escape(r.id)}"]`);const el=box.closest(".round");bind(el,(r.items||[]).map(it=>Object.assign({},byF[it.file]||{},{file:it.file,label:it.label})))});
   $$("button[data-saveround]").forEach(b=>b.onclick=async()=>{const id=b.dataset.saveround;const t=document.querySelector(`textarea[data-round="${CSS.escape(id)}"]`);
     await api("/api/rate",{file:id+"/_round",rating:null,note:t.value});b.textContent="Sent ✓"})}
-function openLb(r){lbRec=r;$("#lbImg").src="/img/"+encodeURI(r.file);$("#lbTitle").textContent=r.label||r.name||r.file;$("#lbNote").value=r.note||"";
+function openLb(r){lbRec=r;$("#lbH3row").hidden=!(STATE&&STATE.h3_ready);$("#lbImg").src="/img/"+encodeURI(r.file);$("#lbTitle").textContent=r.label||r.name||r.file;$("#lbNote").value=r.note||"";
   $$(".rates button").forEach(b=>b.classList.toggle("on",b.dataset.r===r.rating));
   $("#lbInfo").textContent=r.prompt?`style: ${r.style}\nbody: ${r.body}${r.strength?" ("+r.strength+")":""}\nseed: ${r.seed}  quality: ${r.quality}  ${r.secs||"?"} s\n\n${r.prompt}`:r.file;$("#lb").classList.add("on")}
 function closeLb(){$("#lb").classList.remove("on")}
@@ -220,6 +256,9 @@ $$(".rates button").forEach(b=>b.onclick=async()=>{const r=b.dataset.r===lbRec.r
 $("#lbSave").onclick=async()=>{await api("/api/rate",{file:lbRec.file,rating:null,note:$("#lbNote").value});$("#lbSave").textContent="Saved ✓";setTimeout(()=>$("#lbSave").textContent="Save note",1500)};
 $("#lbReuse").onclick=()=>{if(!lbRec.prompt)return;fill({style:lbRec.style,character:lbRec.character,scene:lbRec.scene,body:lbRec.body,strength:lbRec.strength,framing:lbRec.framing,extra_neg:lbRec.extra_neg,seed:lbRec.seed});closeLb();$$("nav button")[0].click()};
 $("#lbVar").onclick=async()=>{if(!lbRec.prompt)return;await api("/api/generate",{style:lbRec.style,character:lbRec.character,scene:lbRec.scene,body:lbRec.body,strength:lbRec.strength,framing:lbRec.framing,quality:lbRec.quality,extra_neg:lbRec.extra_neg,count:4});closeLb();$$("nav button")[0].click()};
+$("#lbH3").onclick=()=>{if(h3imgs.length>=2)h3imgs.shift();h3imgs.push(lbRec.file);showH3imgs();
+  if(!$("#h3prompt").value.trim())$("#h3prompt").value="Keep the girl from Picture 1 exactly as she is drawn: the same anime style, line art, colours, face, hair and body. Change only this: ";
+  closeLb();$$("nav button").find(b=>b.dataset.p==="h3").click()};
 $("#lbOpen").onclick=()=>window.open("/img/"+encodeURI(lbRec.file),"_blank");
 init().catch(e=>{document.body.insertAdjacentHTML("afterbegin",`<p style="color:red;padding:10px">Could not load the Studio: ${esc(e.message)}</p>`)});
 </script>

@@ -32,7 +32,8 @@
       "url": "https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/diffusion_models/anima-aesthetic-v1.1.safetensors",
       "size": 4182230656,
       "sha256": "3c1868387a3a1ff504bbb87c33678321965ead381fcf87afbd0264daa600c082",
-      "required": true
+      "required": true,
+      "key": "aesthetic"
     },
     {
       "file": "qwen_3_06b_base.safetensors",
@@ -41,7 +42,8 @@
       "url": "https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/text_encoders/qwen_3_06b_base.safetensors",
       "size": 1192135096,
       "sha256": "cd2a512003e2f9f3cd3c32a9c3573f820bb28c940f73c57b1ddaa983d9223eba",
-      "required": true
+      "required": true,
+      "key": "anima-te"
     },
     {
       "file": "qwen_image_vae.safetensors",
@@ -50,7 +52,8 @@
       "url": "https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/vae/qwen_image_vae.safetensors",
       "size": 253806246,
       "sha256": "a70580f0213e67967ee9c95f05bb400e8fb08307e017a924bf3441223e023d1f",
-      "required": true
+      "required": true,
+      "key": "anima-vae"
     },
     {
       "file": "anima-lllite-any-test-like-v2.safetensors",
@@ -59,7 +62,8 @@
       "url": "https://huggingface.co/Comfy-Org/Anima-LLLite/resolve/main/model_patches/anima-lllite-any-test-like-v2.safetensors",
       "size": 16403008,
       "sha256": "8863424f04a2445815a827b22cbda557a085d2752e05fab54a2b303821a9e3b2",
-      "required": true
+      "required": true,
+      "key": "lllite"
     },
     {
       "file": "anima-turbo-v1.1.safetensors",
@@ -68,7 +72,8 @@
       "url": "https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/diffusion_models/anima-turbo-v1.1.safetensors",
       "size": 4182230656,
       "sha256": "fba11953276b57edf59d1dc4f1857ac05aa079c56f982b4d7c20298d57d3f7eb",
-      "required": false
+      "required": false,
+      "key": "turbo"
     },
     {
       "file": "anima-base-v1.0.safetensors",
@@ -77,7 +82,38 @@
       "url": "https://huggingface.co/circlestone-labs/Anima/resolve/main/split_files/diffusion_models/anima-base-v1.0.safetensors",
       "size": 4182218328,
       "sha256": "bd43b7cffe1ed1153d9c41e7beb2f18cb1273eafbaa3af3edd6a173dc90a006e",
-      "required": false
+      "required": false,
+      "key": "base"
+    },
+    {
+      "file": "minimax_h3_image_pruned_w4a8.safetensors",
+      "dir": "diffusion_models",
+      "role": "H3-Image image model (w4a8, 6 steps): plain-English pictures, edits, body drawings. Optional set 'h3' (about 29 GB)",
+      "url": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image/resolve/main/diffusion_models/minimax_h3_image_pruned_w4a8.safetensors",
+      "size": 12549794530,
+      "sha256": "517cc19b85348386f4df7c806dce80d839d0899e7cdaa3e1dbb09de964381dbb",
+      "required": false,
+      "key": "h3"
+    },
+    {
+      "file": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "dir": "text_encoders",
+      "role": "H3-Image text encoder (Qwen3-VL 32B, nvfp4). Optional set 'h3' (about 29 GB)",
+      "url": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image/resolve/main/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "size": 15687142551,
+      "sha256": "35a88d51044231fe332301d7a62aa81e3f2cba62febeb446e2c1e3e0ef76f2c6",
+      "required": false,
+      "key": "h3"
+    },
+    {
+      "file": "minimax_h3_image_vae_fp16.safetensors",
+      "dir": "vae",
+      "role": "H3-Image VAE. Optional set 'h3' (about 29 GB)",
+      "url": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image/resolve/main/vae/minimax_h3_image_vae_fp16.safetensors",
+      "size": 1168505312,
+      "sha256": "d80e9c2e5cfc9844869961ff5a58c9a9e52182df6bfb30b26018dd7f348721af",
+      "required": false,
+      "key": "h3"
     }
   ],
   "tools": {

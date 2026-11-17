@@ -1,6 +1,6 @@
 {
  "_note": "Studio presets. Styles, body types, quality and framing the Studio page and gen.py offer. Upstream-owned: the friend's own recipes go in my/RECIPES.md and my/presets.json (merged on top of this file).",
- "default_style": "ll_tv",
+ "default_style": "ll_signature",
  "text_encoder": "qwen_3_06b_base.safetensors",
  "vae": "qwen_image_vae.safetensors",
  "negative": "worst quality, low quality, score_1, score_2, score_3, blurry, jpeg artifacts, watermark, text",
@@ -10,9 +10,18 @@
   "end": 0.7
  },
  "styles": {
+  "ll_signature": {
+   "label": "Love Live! Sunshine!! - signature look (best)",
+   "about": "The TV look, plus the show's name for the last 30% of the steps only: her hair, face shape and outfit are set by then, so she stays your own girl, and the show's name only adds its round eyes, highlights and blush. Eye colour is held with a weight (it can drift a little toward pink).",
+   "template": "masterpiece, best quality, year 2016, anime screenshot, {character}, @murota yuuhei, {body}, {scene}",
+   "late": {
+    "template": "masterpiece, best quality, year 2016, anime screenshot, love live! sunshine!!, {character}, @murota yuuhei, {body}, {scene}",
+    "from": 0.7
+   }
+  },
   "ll_tv": {
-   "label": "Love Live! Sunshine!! - TV anime look (best)",
-   "about": "The lab's best recipe: the show's character designer (@murota yuuhei), the year it aired and 'anime screenshot'. Your own characters stay yours.",
+   "label": "Love Live! Sunshine!! - TV look (plain designer tags)",
+   "about": "The character designer (@murota yuuhei), the year it aired and 'anime screenshot'. Clean Love Live look with slightly smaller, more grown-up eyes than the signature style.",
    "template": "masterpiece, best quality, year 2016, anime screenshot, {character}, @murota yuuhei, {body}, {scene}"
   },
   "ll_card": {
@@ -55,12 +64,17 @@
   "average": {
    "label": "Average",
    "tags": "full body",
-   "control": "average_stand.png"
+   "control": "average.png"
   },
   "average_idol": {
    "label": "Average, idol pose",
    "tags": "full body",
    "control": "average_idol.png"
+  },
+  "average_cowboy": {
+   "label": "Average, closer (thighs up)",
+   "tags": "cowboy shot",
+   "control": "average_cowboy.png"
   },
   "average_wave": {
    "label": "Average, waving",
@@ -80,60 +94,85 @@
   "petite": {
    "label": "Petite",
    "tags": "(petite:1.6), (short:1.3), small breasts, skinny, full body",
-   "control": "petite_stand.png"
+   "control": "petite.png"
   },
   "petite_idol": {
    "label": "Petite, idol pose",
    "tags": "(petite:1.6), (short:1.3), small breasts, skinny, full body",
    "control": "petite_idol.png"
   },
+  "petite_cowboy": {
+   "label": "Petite, closer (thighs up)",
+   "tags": "(petite:1.6), (short:1.3), small breasts, skinny, cowboy shot",
+   "control": "petite_cowboy.png"
+  },
   "tall": {
    "label": "Tall and slender",
    "tags": "(tall female:1.6), (skinny:1.3), long legs, full body",
-   "control": "tall_stand.png"
+   "control": "tall.png"
   },
   "tall_idol": {
-   "label": "Tall, idol pose",
+   "label": "Tall and slender, idol pose",
    "tags": "(tall female:1.6), (skinny:1.3), long legs, full body",
    "control": "tall_idol.png"
+  },
+  "tall_cowboy": {
+   "label": "Tall and slender, closer (thighs up)",
+   "tags": "(tall female:1.6), (skinny:1.3), long legs, cowboy shot",
+   "control": "tall_cowboy.png"
   },
   "curvy": {
    "label": "Curvy",
    "tags": "(curvy:1.6), (wide hips:1.4), thick thighs, large breasts, mature female, full body",
-   "control": "curvy_stand.png"
+   "control": "curvy.png"
   },
   "curvy_idol": {
    "label": "Curvy, idol pose",
    "tags": "(curvy:1.6), (wide hips:1.4), thick thighs, large breasts, mature female, full body",
    "control": "curvy_idol.png"
   },
+  "curvy_cowboy": {
+   "label": "Curvy, closer (thighs up)",
+   "tags": "(curvy:1.6), (wide hips:1.4), thick thighs, large breasts, mature female, cowboy shot",
+   "control": "curvy_cowboy.png"
+  },
   "soft": {
    "label": "Soft and chubby",
    "tags": "(plump:1.5), chubby, round face, thick arms, thick thighs, full body",
-   "control": "soft_stand.png"
+   "control": "soft.png"
   },
   "soft_idol": {
-   "label": "Soft, idol pose",
+   "label": "Soft and chubby, idol pose",
    "tags": "(plump:1.5), chubby, round face, thick arms, thick thighs, full body",
    "control": "soft_idol.png"
+  },
+  "soft_cowboy": {
+   "label": "Soft and chubby, closer (thighs up)",
+   "tags": "(plump:1.5), chubby, round face, thick arms, thick thighs, cowboy shot",
+   "control": "soft_cowboy.png"
   },
   "athletic": {
    "label": "Athletic",
    "tags": "(toned:1.3), athletic, full body",
-   "control": "athletic_stand.png"
+   "control": "athletic.png"
   },
   "athletic_idol": {
    "label": "Athletic, idol pose",
    "tags": "(toned:1.3), athletic, full body",
    "control": "athletic_idol.png"
   },
+  "athletic_cowboy": {
+   "label": "Athletic, closer (thighs up)",
+   "tags": "(toned:1.3), athletic, cowboy shot",
+   "control": "athletic_cowboy.png"
+  },
   "chibi": {
    "label": "Chibi",
    "tags": "(chibi:1.8), (super deformed:1.4), full body",
-   "control": "chibi_stand.png"
+   "control": "chibi.png"
   },
   "chibi_idol": {
-   "label": "Chibi, idol pose",
+   "label": "Chibi, peace sign",
    "tags": "(chibi:1.8), (super deformed:1.4), full body",
    "control": "chibi_idol.png"
   },
@@ -200,7 +239,7 @@
  "examples": [
   {
    "title": "Seaside schoolgirl (the lab's test girl)",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, short silver hair, single braid, purple eyes, white cardigan, sailor school uniform, pleated skirt",
    "body": "none",
    "scene": "cowboy shot, holding paper cup, seaside railing, ocean, blue sky, smile",
@@ -208,7 +247,7 @@
   },
   {
    "title": "Idol on stage",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, long orange hair, side ponytail, green eyes, idol clothes, frilled dress, white gloves, hair ribbon",
    "body": "average_idol",
    "scene": "concert stage, stage lights, light particles, smile, open mouth",
@@ -224,7 +263,7 @@
   },
   {
    "title": "Summer festival yukata",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, medium pink hair, low twintails, blue eyes, yukata, floral print, hair flower",
    "body": "none",
    "scene": "cowboy shot, summer festival, night, paper lanterns, fireworks, holding fan, smile",
@@ -232,7 +271,7 @@
   },
   {
    "title": "Rainy afternoon",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, short blue hair, bob cut, tareme, grey eyes, oversized hoodie, school bag",
    "body": "none",
    "scene": "upper body, rain, transparent umbrella, city street, puddles, wet hair, gentle smile",
@@ -240,7 +279,7 @@
   },
   {
    "title": "Rooftop at sunset",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, long brown hair, ponytail, amber eyes, sailor school uniform, red neckerchief",
    "body": "none",
    "scene": "cowboy shot, school rooftop, sunset, orange sky, wind, hair blowing, looking back, smile",
@@ -248,7 +287,7 @@
   },
   {
    "title": "Cafe, sitting",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, wavy blonde hair, long hair, green eyes, beret, cream sweater, long skirt",
    "body": "average_sit",
    "scene": "cafe, window, holding cup, latte, warm lighting, smile",
@@ -256,7 +295,7 @@
   },
   {
    "title": "Jumping for joy",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, short orange hair, ahoge, red eyes, sailor school uniform, pleated skirt",
    "body": "average_jump",
    "scene": "cherry blossoms, petals, blue sky, open mouth, happy",
@@ -264,7 +303,7 @@
   },
   {
    "title": "Chibi sticker",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, long purple hair, twin drills, yellow eyes, idol clothes, frills",
    "body": "chibi_idol",
    "scene": "simple background, white background, smile, :d",
@@ -272,7 +311,7 @@
   },
   {
    "title": "Curvy idol",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, long wavy dark green hair, golden eyes, mole under eye, idol clothes, off-shoulder dress, choker",
    "body": "curvy_idol",
    "scene": "concert stage, stage lights, light particles, wink, smile",
@@ -280,7 +319,7 @@
   },
   {
    "title": "Tall cool girl in the city",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, long straight black hair, tsurime, blue eyes, leather jacket, black skirt, boots",
    "body": "tall",
    "scene": "night, city, neon lights, street, serious, looking at viewer",
@@ -288,7 +327,7 @@
   },
   {
    "title": "Soft and cozy winter",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, short light brown hair, braid, brown eyes, freckles, red scarf, knit sweater, pleated skirt, black pantyhose, mittens",
    "body": "soft",
    "scene": "snow, winter, town, christmas lights, blush, smile",
@@ -296,7 +335,7 @@
   },
   {
    "title": "Athletic dancer",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts",
    "body": "athletic_idol",
    "scene": "dance practice room, mirror, sweat, grin",
@@ -304,7 +343,7 @@
   },
   {
    "title": "A face that isn't generic",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "1girl, solo, short black hair, hair intakes, jitome, thick eyebrows, freckles, fang, green eyes, oversized cardigan, school uniform",
    "body": "none",
    "scene": "upper body, classroom, window, afternoon, smug",
@@ -312,7 +351,7 @@
   },
   {
    "title": "Three idols together",
-   "style": "ll_tv",
+   "style": "ll_signature",
    "character": "3girls, idol clothes, matching outfits, red hair, blonde hair, blue hair",
    "body": "none",
    "scene": "concert stage, stage lights, holding hands, smile, open mouth, cowboy shot",
@@ -327,5 +366,27 @@
    "seed": 1
   }
  ],
- "styles_order_note": "ll_tv first: it is the default and the best tested look."
+ "styles_order_note": "ll_tv first: it is the default and the best tested look.",
+ "h3": {
+  "_note": "MiniMax H3-Image (optional model set 'h3'). Plain English, 6 steps. Sizes picked for 8 GB cards.",
+  "model": "minimax_h3_image_pruned_w4a8.safetensors",
+  "text_encoder": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+  "vae": "minimax_h3_image_vae_fp16.safetensors",
+  "steps": 6,
+  "ref_megapixels": 1.0,
+  "sizes": {
+   "portrait": [
+    896,
+    1344
+   ],
+   "landscape": [
+    1344,
+    896
+   ],
+   "square": [
+    1152,
+    1152
+   ]
+  }
+ }
 }

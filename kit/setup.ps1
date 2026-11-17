@@ -2,7 +2,7 @@
 #
 #   powershell -ExecutionPolicy Bypass -File kit\setup.ps1 -Check                  # report only (GPU, driver, RAM, drives)
 #   powershell -ExecutionPolicy Bypass -File kit\setup.ps1 -DataDir "D:\LoveLiveStudio"
-#   ... -Optional turbo,base     also download the optional models (see kit\manifest.json)
+#   ... -Optional turbo,base,h3  also download optional models (kit\manifest.json "key"): turbo 4 GB, base 4 GB, h3 29 GB
 #   ... -Build pascal|modern     override the automatic engine choice (normally never needed)
 #
 # Everything big lives in -DataDir: downloads\, engine\ (ComfyUI portable), models\, outputs\, inputs\, logs\.
@@ -77,7 +77,7 @@ function Get-NeedGB($build, $opt) {
     $b = $Manifest.engine.builds.$build
     $bytes = [double]$b.size * 3.2   # archive + extracted engine (~4.3 GB)
     foreach ($m in $Manifest.models) {
-        if ($m.required -or ($opt -contains ($m.file.Split("-")[1]))) { $bytes += [double]$m.size }
+        if ($m.required -or ($opt -contains $m.key)) { $bytes += [double]$m.size }
     }
     return [math]::Ceiling($bytes / 1GB) + 10   # + room for a few thousand pictures
 }
@@ -189,8 +189,7 @@ if (-not (Test-Path $marker) -or (Get-Content $marker -Raw).Trim() -ne $want) {
 
 # ---------------------------------------------------------------- 5. models
 foreach ($m in $Manifest.models) {
-    $key = $m.file.Split("-")[1]   # aesthetic / turbo / base / ...
-    if (-not $m.required -and -not ($opt -contains $key)) { continue }
+    if (-not $m.required -and -not ($opt -contains $m.key)) { continue }
     Download $m.url (Join-Path $DataDir ("models\" + $m.dir + "\" + $m.file)) ([int64]$m.size) $m.sha256
 }
 

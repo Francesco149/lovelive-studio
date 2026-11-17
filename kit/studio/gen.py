@@ -6,6 +6,17 @@
   kit\\py.cmd kit\\studio\\gen.py round r01 jobs.jsonl --title "What we test" [--question "Which face do you like?"]
         jobs.jsonl: one job per line, e.g. {"label": "A: tags only", "name": "a_s1", "character": "...", "body": "none", "seed": 1}
         -> images in <data>\\outputs\\r01\\, a contact sheet r01\\_sheet.jpg, my\\rounds\\r01.json (shown in the Studio's Rounds tab)
+  kit\\py.cmd kit\\studio\\gen.py grid r02 --example "Idol on stage" --vary body=curvy_idol,petite_idol,soft_idol --seeds 1,2 --open
+  kit\\py.cmd kit\\studio\\gen.py grid r03 --character "1girl, solo, ..." --scene "..." --vary style=ll_tv,ll_soft,ll_90s --vary strength=0.5,0.6
+        every combination of the --vary values x seeds, labelled automatically, as a round (same output as "round").
+        Start from --example "<title>" (a ready-made prompt) and/or --character/--scene/--body/--style/...; --open shows
+        the Rounds tab in the user's browser when it is done. Use this for "try a few for me" requests.
+  kit\\py.cmd kit\\studio\\gen.py one --engine h3 --prompt "plain English ..." [--image out:r03/x_00001_.png] [--framing square]
+        H3-Image (optional model set "h3"): describe the picture in sentences; --image (up to 2) = Picture 1 / Picture 2 to edit
+  kit\\py.cmd kit\\studio\\gen.py make-body soft_short --describe "short and soft, round face, about 6 heads tall" --tags "(plump:1.4), (short:1.3)"
+        [--pose "..."] [--shot full|cowboy] [--seeds 1,2,3] [--pick N]: H3 draws the body filling the frame, then the pick is turned
+        grey, saved as my/controls/<name>.png and added to the body menu (my/presets.json). Without --pick it only makes the
+        candidates (round "body-<name>") so the user can choose; run again with --pick N.
   kit\\py.cmd kit\\studio\\gen.py sheet r01           (re)make the contact sheet of a round
   kit\\py.cmd kit\\studio\\gen.py feedback [r01]      the friend's ratings and notes (all, or one round)
   kit\\py.cmd kit\\studio\\gen.py selftest            one small image; checks it is not black / blank (setup and after a reset)
@@ -30,7 +41,9 @@ def cmd_status(a):
 
 
 def job_from_args(a):
-    j = {k: getattr(a, k) for k in ("style", "character", "body", "scene", "seed", "quality", "framing", "strength", "round", "name", "extra_neg", "body_tags", "end", "note")}
+    j = {k: getattr(a, k, None) for k in ("style", "character", "body", "scene", "seed", "quality", "framing", "strength", "round", "name", "extra_neg", "body_tags", "end", "note", "engine", "prompt")}
+    if getattr(a, "image", None):
+        j["images"] = a.image
     return {k: v for k, v in j.items() if v is not None}
 
 
@@ -114,6 +127,94 @@ def cmd_round(a):
     print("round file:", meta_path)
 
 
+def cmd_grid(a):
+    import itertools
+    P = core.presets()
+    base = {}
+    if a.example:
+        ex = [e for e in P["examples"] if e["title"].lower() == a.example.lower()]
+        if not ex:
+            sys.exit("no example called %r; titles: %s" % (a.example, ", ".join(e["title"] for e in P["examples"])))
+        base = {k: v for k, v in ex[0].items() if k not in ("title", "seed")}
+    base.update(job_from_args(a))
+    base.pop("seed", None)
+    axes = []
+    for v in a.vary or []:
+        k, _, vals = v.partition("=")
+        conv = (lambda x: float(x)) if k in ("strength", "end") else (lambda x: x)
+        axes.append((k, [conv(x.strip()) for x in vals.split(",") if x.strip()]))
+    seeds = [int(x) for x in (a.seeds or "1,2").split(",")]
+    jobs = []
+    for combo in itertools.product(*[vals for _, vals in axes]) if axes else [()]:
+        for sd in seeds:
+            j = dict(base, seed=sd)
+            parts = []
+            for (k, _), val in zip(axes, combo):
+                j[k] = val
+                parts.append("%s %s" % (k, val) if k in ("strength", "end") else str(val))
+            name = "_".join(str(x).replace(" ", "-").replace(".", "") for x in combo) or "base"
+            j["name"] = "%s_s%d" % (name[:60], sd)
+            j["label"] = "%s s%d" % (", ".join(parts) or "base", sd)
+            jobs.append(j)
+    rid = "".join(c for c in a.round_id if c.isalnum() or c in "-_")
+    jp = os.path.join(core.MY, "rounds", rid + ".jobs.jsonl")
+    os.makedirs(os.path.dirname(jp), exist_ok=True)
+    with open(jp, "w", encoding="utf-8") as f:
+        for j in jobs:
+            f.write(json.dumps(j, ensure_ascii=False) + "\n")
+    print("%d pictures -> %s" % (len(jobs), jp), flush=True)
+    a.jobs = jp
+    cmd_round(a)
+    if a.open:
+        import webbrowser
+        webbrowser.open(core.settings().get("studio_url", "http://127.0.0.1:8190") + "/#rounds")
+
+
+BODY_PROMPT = ("An anime illustration of one girl alone on a plain light grey background. {frame} {body} {pose} She wears a fitted "
+               "short-sleeved T-shirt and a pleated skirt, shoulder-length hair. Cel-shaded anime colouring with clear shadows, large "
+               "expressive anime eyes. No other people, no objects, no text.")
+FRAME = {"full": "She fills the whole picture: the top of her head is near the top edge and her feet are near the bottom edge.",
+         "cowboy": "A cowboy shot from the top of her head down to her mid-thighs; she fills the picture."}
+
+
+def cmd_make_body(a):
+    from PIL import Image
+    s = core.settings()
+    name = "".join(c for c in a.name if c.isalnum() or c in "_-")
+    rid = "body-" + name
+    seeds = [int(x) for x in (a.seeds or "1,2,3").split(",")]
+    pose = a.pose or "A natural relaxed pose in a three-quarter view: weight on one leg, one hand held near her chest, head slightly tilted, looking at the viewer."
+    meta = core.load_json(os.path.join(core.MY, "rounds", rid + ".json"), None)
+    if a.pick is None:
+        need_engine(s)
+        jp = os.path.join(core.MY, "rounds", rid + ".jobs.jsonl")
+        os.makedirs(os.path.dirname(jp), exist_ok=True)
+        with open(jp, "w", encoding="utf-8") as f:
+            for sd in seeds:
+                f.write(json.dumps({"engine": "h3", "prompt": BODY_PROMPT.format(frame=FRAME[a.shot], body=a.describe, pose=pose),
+                                    "seed": sd, "name": "%s_s%d" % (name, sd), "label": "%s, seed %d" % (name, sd)}) + "\n")
+        a.round_id, a.jobs, a.title = rid, jp, "Body drawing: " + a.describe[:60]
+        a.question = "Which body is right? Tell Claude the number."
+        cmd_round(a)
+        print("then: gen.py make-body %s --describe ... --tags ... --pick <number>" % name)
+        return
+    if not meta:
+        sys.exit("no candidates yet: run without --pick first")
+    it = meta["items"][a.pick - 1]
+    im = Image.open(core.output_path(it["file"], s)).convert("L").resize((832, 1248), Image.LANCZOS)
+    os.makedirs(os.path.join(core.MY, "controls"), exist_ok=True)
+    dst = os.path.join(core.MY, "controls", name + ".png")
+    im.save(dst)
+    mp = os.path.join(core.MY, "presets.json")
+    mine = core.load_json(mp, {}) or {}
+    mine.setdefault("bodies", {})[name] = {"label": a.label or name.replace("_", " ").capitalize(),
+                                           "tags": core.clean((a.tags or "") + ", " + ("full body" if a.shot == "full" else "cowboy shot")),
+                                           "control": "my/" + name + ".png", "made_from": a.describe}
+    with open(mp, "w", encoding="utf-8") as f:
+        json.dump(mine, f, indent=1, ensure_ascii=False)
+    print("body drawing saved:", dst, "| in the Studio's body menu as", mine["bodies"][name]["label"], "(reload the page)")
+
+
 def cmd_sheet(a):
     meta = core.load_json(os.path.join(core.MY, "rounds", a.round_id + ".json"), None)
     items = meta["items"] if meta else [{"file": r["file"], "label": r["name"]} for r in core.read_jsonl(os.path.join(core.MY, "history.jsonl")) if r.get("round") == a.round_id]
@@ -157,6 +258,9 @@ def main():
     for k in ("style", "character", "body", "scene", "quality", "framing", "round", "name", "extra_neg", "body_tags", "note"):
         o.add_argument("--" + k.replace("_", "-"), dest=k)
     o.add_argument("--seed", type=int)
+    o.add_argument("--engine", choices=["anima", "h3"])
+    o.add_argument("--prompt", help="H3: the picture in plain English")
+    o.add_argument("--image", action="append", help="H3: picture to edit / Picture N (a path or out:<round>/<file>)")
     o.add_argument("--strength", type=float)
     o.add_argument("--end", type=float)
     r = sp.add_parser("round")
@@ -164,13 +268,38 @@ def main():
     r.add_argument("jobs")
     r.add_argument("--title")
     r.add_argument("--question")
+    g = sp.add_parser("grid")
+    g.add_argument("round_id")
+    g.add_argument("--example")
+    for k in ("style", "character", "body", "scene", "quality", "framing", "extra_neg", "body_tags", "note"):
+        g.add_argument("--" + k.replace("_", "-"), dest=k)
+    g.add_argument("--strength", type=float)
+    g.add_argument("--end", type=float)
+    g.add_argument("--seed", type=int, help=argparse.SUPPRESS)
+    g.add_argument("--round", dest="round", help=argparse.SUPPRESS)
+    g.add_argument("--name", dest="name", help=argparse.SUPPRESS)
+    g.add_argument("--vary", action="append", help="field=value1,value2 (repeatable)")
+    g.add_argument("--seeds", help="comma list, default 1,2")
+    g.add_argument("--title")
+    g.add_argument("--question")
+    g.add_argument("--open", action="store_true")
+    mb = sp.add_parser("make-body")
+    mb.add_argument("name")
+    mb.add_argument("--describe", required=True, help="the body in plain English (proportions in heads work best)")
+    mb.add_argument("--tags", help="matching Anima body tags, e.g. (plump:1.4)")
+    mb.add_argument("--pose")
+    mb.add_argument("--shot", choices=["full", "cowboy"], default="full")
+    mb.add_argument("--seeds")
+    mb.add_argument("--pick", type=int)
+    mb.add_argument("--label")
+    mb.add_argument("--open", action="store_true")
     sh = sp.add_parser("sheet")
     sh.add_argument("round_id")
     fb = sp.add_parser("feedback")
     fb.add_argument("round_id", nargs="?")
     sp.add_parser("selftest")
     a = ap.parse_args()
-    {"status": cmd_status, "one": cmd_one, "round": cmd_round, "sheet": cmd_sheet, "feedback": cmd_feedback, "selftest": cmd_selftest}[a.cmd](a)
+    {"status": cmd_status, "one": cmd_one, "round": cmd_round, "grid": cmd_grid, "make-body": cmd_make_body, "sheet": cmd_sheet, "feedback": cmd_feedback, "selftest": cmd_selftest}[a.cmd](a)
 
 
 if __name__ == "__main__":

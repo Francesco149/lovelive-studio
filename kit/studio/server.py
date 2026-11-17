@@ -55,8 +55,12 @@ def safe_join(base, rel):
 
 def typical_secs(quality, body):
     """Median time of the last few images of this kind, so the page can say how long to wait."""
-    xs = [r["secs"] for r in core.read_jsonl(os.path.join(core.MY, "history.jsonl"))
-          if r.get("quality") == quality and (r.get("body") != "none") == (body != "none") and r.get("secs")][-7:]
+    hist = core.read_jsonl(os.path.join(core.MY, "history.jsonl"))
+    if quality == "h3":
+        xs = [r["secs"] for r in hist if r.get("engine") == "h3" and r.get("secs")][-7:]
+    else:
+        xs = [r["secs"] for r in hist if r.get("engine", "anima") != "h3" and r.get("quality") == quality
+              and (r.get("body") != "none") == (body != "none") and r.get("secs")][-7:]
     return sorted(xs)[len(xs) // 2] if xs else None
 
 
@@ -96,9 +100,12 @@ class H(BaseHTTPRequestHandler):
                 P = core.presets()
                 mdir = os.path.join(s.get("data_dir", ""), "models", "diffusion_models")
                 P["quality"] = {k: v for k, v in P["quality"].items() if os.path.exists(os.path.join(mdir, v["model"]))} or P["quality"]
-                return self.send(200, {"presets": P, "comfy_up": core.comfy_up(s),
+                md = os.path.join(s.get("data_dir", ""), "models")
+                H = P.get("h3", {})
+                h3 = bool(H) and all(os.path.exists(os.path.join(md, d, H[k])) for d, k in (("diffusion_models", "model"), ("text_encoders", "text_encoder"), ("vae", "vae")))
+                return self.send(200, {"presets": P, "comfy_up": core.comfy_up(s), "h3_ready": h3,
                                        "machine": {k: s.get(k) for k in ("gpu", "vram_gb", "engine_build", "data_dir")},
-                                       "typical": {q: {b: typical_secs(q, b) for b in ("none", "body")} for q in P["quality"]}})
+                                       "typical": {q: {b: typical_secs(q, b) for b in ("none", "body")} for q in list(P["quality"]) + ["h3"]}})
             if p == "/api/jobs":
                 with LOCK:
                     out = [{k: v for k, v in e.items()} for e in JOBS[-60:]]
@@ -158,7 +165,7 @@ class H(BaseHTTPRequestHandler):
             if p == "/api/rate":
                 return self.send(200, core.feedback(b["file"], b.get("rating"), b.get("note")))
             if p == "/api/preview":
-                return self.send(200, {"prompt": core.build_prompt(b), "negative": core.build_negative(b)})
+                return self.send(200, {"prompt": core.build_prompt(b), "late": core.build_late_prompt(b), "negative": core.build_negative(b)})
             return self.send(404, {"error": "not found"})
         except Exception as e:
             return self.send(500, {"error": str(e)})

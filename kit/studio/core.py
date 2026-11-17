@@ -78,6 +78,8 @@ def clean(t):
 
 def build_prompt(job, P=None):
     P = P or presets()
+    if job.get("engine") == "h3":
+        return (job.get("prompt") or "").strip()
     st = P["styles"][job.get("style") or P["default_style"]]
     body = P["bodies"].get(job.get("body") or "none", P["bodies"]["none"]) if not str(job.get("body", "")).startswith("custom:") else {"tags": job.get("body_tags", "")}
     tags = job.get("body_tags") if job.get("body_tags") is not None else body.get("tags", "")
@@ -86,8 +88,25 @@ def build_prompt(job, P=None):
     return clean(text)
 
 
+def build_late_prompt(job, P=None):
+    """The style's late prompt (used for the last steps only), or None. Eye colours are weighted up in it so the show's
+    name does not recolour them toward a canon character's."""
+    P = P or presets()
+    if job.get("engine") == "h3":
+        return None
+    st = P["styles"][job.get("style") or P["default_style"]]
+    late = st.get("late")
+    if not late:
+        return None
+    j = dict(job)
+    j["character"] = re.sub(r"(?<![(\w])([a-z]+ eyes)(?![:\w])", r"(\1:1.3)", clean(job.get("character")))
+    return build_prompt(dict(j, style="__late__"), dict(P, styles=dict(P["styles"], __late__={"template": late["template"]})))
+
+
 def build_negative(job, P=None):
     P = P or presets()
+    if job.get("engine") == "h3":
+        return ""
     st = P["styles"][job.get("style") or P["default_style"]]
     return clean(st.get("negative", P["negative"]) + ", " + (job.get("extra_neg") or ""))
 
@@ -120,9 +139,45 @@ def stage_input(path, s=None):
     return "studio/" + name
 
 
+def resolve_picture(ref, s=None):
+    """A picture given as a file path, or as "out:<round>/<file>" (a Studio output)."""
+    s = s or settings()
+    if str(ref).startswith("out:"):
+        return output_path(ref[4:], s)
+    return ref
+
+
+def build_graph_h3(job, P, s):
+    """MiniMax H3-Image: plain-English prompt, 6 steps, CFG 1. With "images" (1-2 pictures) it edits / uses them as
+    Picture 1, Picture 2 in the prompt; the output size is explicit."""
+    H = P["h3"]
+    w, h = H["sizes"][job.get("framing") or "portrait"]
+    if job.get("width") and job.get("height"):
+        w, h = int(job["width"]), int(job["height"])
+    g = {
+        "1": {"class_type": "UNETLoader", "inputs": {"unet_name": H["model"], "weight_dtype": "default"}, "_meta": {"title": "H3-Image model"}},
+        "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": H["text_encoder"], "type": "minimax", "device": "default"}, "_meta": {"title": "H3 text encoder"}},
+        "3": {"class_type": "VAELoader", "inputs": {"vae_name": H["vae"]}, "_meta": {"title": "H3 VAE"}},
+        "6": {"class_type": "MiniMaxH3ImageConditioning", "inputs": {"clip": ["2", 0], "prompt": build_prompt(job, P), "width": w, "height": h, "vae": ["3", 0]}, "_meta": {"title": "Prompt"}},
+        "7": {"class_type": "ConditioningZeroOut", "inputs": {"conditioning": ["6", 0]}},
+        "8": {"class_type": "KSampler", "inputs": {"model": ["1", 0], "positive": ["6", 0], "negative": ["7", 0], "latent_image": ["6", 1], "seed": int(job["seed"]),
+              "steps": H["steps"], "cfg": 1.0, "sampler_name": "euler", "scheduler": "simple", "denoise": 1.0}, "_meta": {"title": "Sampler"}},
+        "9": {"class_type": "VAEDecode", "inputs": {"samples": ["8", 0], "vae": ["3", 0]}},
+        "10": {"class_type": "SaveImage", "inputs": {"images": ["9", 0], "filename_prefix": "%s/%s" % (job["round"], job["name"])}},
+    }
+    for i, ref in enumerate((job.get("images") or [])[:2]):
+        li, sc = "4%d" % i, "5%d" % i
+        g[li] = {"class_type": "LoadImage", "inputs": {"image": stage_input(resolve_picture(ref, s), s)}, "_meta": {"title": "Picture %d" % (i + 1)}}
+        g[sc] = {"class_type": "ImageScaleToTotalPixels", "inputs": {"image": [li, 0], "upscale_method": "lanczos", "megapixels": H["ref_megapixels"], "resolution_steps": 32}}
+        g["6"]["inputs"]["images.image_%d" % (i + 1)] = [sc, 0]
+    return g
+
+
 def build_graph(job, P=None, s=None):
     P = P or presets()
     s = s or settings()
+    if job.get("engine") == "h3":
+        return build_graph_h3(job, P, s)
     q = P["quality"][job.get("quality") or "final"]
     ctrl = control_file(job, P)
     w, h = P["framing"][job.get("framing") or "portrait"] if not ctrl else P["framing"]["portrait"]
@@ -140,6 +195,14 @@ def build_graph(job, P=None, s=None):
         "8": {"class_type": "VAEDecode", "inputs": {"samples": ["7", 0], "vae": ["3", 0]}},
         "9": {"class_type": "SaveImage", "inputs": {"images": ["8", 0], "filename_prefix": "%s/%s" % (job["round"], job["name"])}},
     }
+    late = build_late_prompt(job, P)
+    if late:
+        frm = float(P["styles"][job.get("style") or P["default_style"]]["late"]["from"])
+        g["44"] = {"class_type": "CLIPTextEncode", "inputs": {"clip": ["2", 0], "text": late}, "_meta": {"title": "Prompt for the last steps"}}
+        g["45"] = {"class_type": "ConditioningSetTimestepRange", "inputs": {"conditioning": ["4", 0], "start": 0.0, "end": frm}}
+        g["46"] = {"class_type": "ConditioningSetTimestepRange", "inputs": {"conditioning": ["44", 0], "start": frm, "end": 1.0}}
+        g["47"] = {"class_type": "ConditioningCombine", "inputs": {"conditioning_1": ["45", 0], "conditioning_2": ["46", 0]}}
+        g["7"]["inputs"]["positive"] = ["47", 0]
     if ctrl:
         body = P["bodies"].get(job.get("body"), {})
         strength = float(job.get("strength") if job.get("strength") is not None else body.get("strength", P["control"]["strength"]))
@@ -236,9 +299,10 @@ def run(job, s=None, on_queued=None):
     secs = round(time.time() - t0, 1)
     files = [("%s/%s" % (i["subfolder"], i["filename"])).lstrip("/") for i in imgs if i.get("type") == "output"]
     rec = {"time": time.strftime("%Y-%m-%d %H:%M:%S"), "file": files[0] if files else None, "round": j["round"], "name": j["name"],
-           "style": j["style"], "character": j.get("character", ""), "body": j["body"], "body_tags": j.get("body_tags"),
+           "engine": j.get("engine", "anima"), "images": j.get("images"),
+           "style": j["style"] if j.get("engine") != "h3" else "h3", "character": j.get("character", ""), "body": j["body"], "body_tags": j.get("body_tags"),
            "scene": j.get("scene", ""), "extra_neg": j.get("extra_neg", ""), "quality": j["quality"], "framing": j["framing"],
-           "seed": j["seed"], "strength": j.get("strength"), "prompt": build_prompt(j, P), "negative": build_negative(j, P), "secs": secs,
+           "seed": j["seed"], "strength": j.get("strength"), "prompt": build_prompt(j, P), "prompt_late": build_late_prompt(j, P), "negative": build_negative(j, P), "secs": secs,
            "note": j.get("note", "")}
     append_jsonl(os.path.join(MY, "history.jsonl"), rec)
     return rec
