@@ -46,6 +46,9 @@ exactly what they will see and what to press.
    minutes, telling the user the progress. It is safe to run again after an interruption (finished downloads are kept).
    On a **GTX 10 card** (setup says build `pascal`), also offer the 4 GB "Turbo sketch" model (`-Optional turbo`): it
    makes rough drafts about 6x faster than Final, which matters on a slow card. It needs a yes like any big download.
+   On a newer card (build `modern`) with an SSD and 40+ GB to spare, also offer **H3-Image** (`-Optional h3`, 29 GB):
+   plain-English pictures, edits of their pictures, and custom body drawings from a description. Not on a GTX 10 card:
+   its 20B model streams from disk and the card has no fast 4-bit maths, so a picture would take far too long.
    Exit codes: 11 = not enough space, 13 = a download or unpack failed (run again; if it fails twice, check the
    internet), 14 = the engine or the self-test failed (section 6).
 5. **Show them the Studio:** `powershell -ExecutionPolicy Bypass -File kit/start.ps1` opens it in the browser
@@ -96,8 +99,14 @@ exactly what they will see and what to press.
   Qwen-Image VAE. 30 steps, CFG 4, `er_sde` sampler, 832x1248.
 - **Why it looks like Love Live:** the prompt names the show's **character designer as an artist tag**
   (`@murota yuuhei`), the year it aired (`year 2016`) and the medium (`anime screenshot`). The model then draws the way
-  the show's frames were drawn. The **show's own name is left out on purpose**: it pulls in the show's uniforms,
-  hair and even its characters. The style `ll_canon` puts it back for fan art of the real characters.
+  the show's frames were drawn. The **show's own name** (`love live! sunshine!!`) adds the signature round eyes, eye
+  highlights and blush, but over the whole picture it turns any girl into a canon character (silver hair becomes You,
+  orange becomes Honoka/Chika, black hime cut becomes Dia; weights and negatives don't stop it, tested).
+  So the default style **`ll_signature`** uses the plain prompt for the first 70% of the steps (hair, face shape, outfit
+  and body are decided there) and the prompt with the show's name only for the last 30% (eyes, line work, blush). That
+  keeps the user's own girl with the show's eyes. Eye colours are weighted up in the late prompt because they can drift
+  toward pink. `ll_tv` is the plain look (smaller, more grown-up eyes); `ll_canon` uses the name throughout, for fan art
+  of the real characters.
 - **Prompt order** (Anima was trained this way): `masterpiece, best quality, year 2016, anime screenshot, <character
   tags>, @murota yuuhei, <body tags>, <scene tags>`. Danbooru tags, lower case, spaces instead of underscores, one artist tag.
   Weights like `(curvy:1.6)` strengthen a tag (Anima needs 1.4-1.8 where older models used 1.2).
@@ -106,11 +115,20 @@ exactly what they will see and what to press.
   pose. The style still comes from the prompt, and the background and clothes from the scene tags. Keep matching body tags in the
   prompt too. Higher strength copies the drawing's outfit and stiffness; lower gives the prompt more say. Without a
   drawing, poses are freer but body types other than chibi/curvy/tall follow the tags only loosely (petite is weak).
-- **Make a new body drawing:** any picture of one figure on a plain background works: a pose they like, a drawing, a
-  render. Make it greyscale, 832x1248 portrait, figure centred with space around it. Save it in `my/controls/`, add a body entry
-  to `my/presets.json` (copy the shape of `kit/presets.json` "bodies", with `"control": "my/<file>.png"` and matching tags), commit.
-  A good source is a Studio picture of the body they want, e.g. from tags only. Its grey version locks that body
-  for every later picture. Erase construction lines on a drawn base's head first, or they turn into bangs over one eye.
+  **The figure must fill the drawing** (head near the top edge, feet near the bottom): a small figure with lots of
+  white space makes a small face with small eyes, which loses the Love Live look. The `_cowboy` drawings (thighs up)
+  give the biggest faces.
+- **Make a new body drawing:** with H3 installed, `gen.py make-body <name> --describe "<body in plain English, height in
+  heads>" --tags "<matching Anima tags>"` makes 3 candidates as a round; the user picks one; `--pick N` turns it grey
+  and adds it to their body menu. Without H3: any picture of one figure filling a plain background works (a Studio
+  picture of the body they like, a drawing, a render): greyscale, 832x1248, save in `my/controls/`, add a body entry to
+  `my/presets.json` (shape of `kit/presets.json` "bodies", `"control": "my/<file>.png"`, matching tags), commit. Erase
+  construction lines on a drawn base's head first, or they turn into bangs over one eye.
+- **H3-Image (optional set `h3`, about 29 GB):** MiniMax's big model, 6 steps, plain-English prompts. Best at body
+  proportions in words, poses, scenes with several things going on, and **edits**: "keep the girl from Picture 1 exactly
+  as she is drawn ... change only ...", which keeps an Anima Love Live girl's style. On its own its style is generic
+  anime, so for Love Live pictures make the girl with Anima first, then edit with H3. Studio: the *Describe (H3)* tab and
+  *Edit with H3* in the picture viewer. Speed on 8 GB: section 7.
 - **Files:** pictures in `<data>\outputs\<round>\`; every picture is logged in `my/history.jsonl` (prompt, seed, body,
   time); the user's ratings and notes in `my/feedback.jsonl` (Studio lightbox: love / like / so-so / not this + note).
 
@@ -120,13 +138,39 @@ Always pass `-s`. `kit\py.cmd` wraps it for cmd/PowerShell. From Git Bash, call 
 ```
 kit\py.cmd kit\studio\gen.py status
 kit\py.cmd kit\studio\gen.py one --character "1girl, solo, ..." --scene "..." --body curvy_idol [--style ll_card] [--seed 7] [--quality draft]
+kit\py.cmd kit\studio\gen.py grid r03 --example "Idol on stage" --vary body=curvy_idol,petite_idol --seeds 1,2 --open
 kit\py.cmd kit\studio\gen.py round r03 my\rounds\r03.jobs.jsonl --title "..." --question "..."
+kit\py.cmd kit\studio\gen.py one --engine h3 --prompt "..." [--image out:r03/x_00001_.png]
+kit\py.cmd kit\studio\gen.py make-body soft_short --describe "..." --tags "..."   (then --pick N)
 kit\py.cmd kit\studio\gen.py feedback r03
 kit\py.cmd kit\studio\gen.py selftest
 powershell -ExecutionPolicy Bypass -File kit/start.ps1 [-NoBrowser] [-ComfyUI] [-Restart] [-Stop]
 ```
 
-Look at every picture you make (open the PNG) before showing it, so you can say something useful about it.
+### "Can you make me some ...?" (the fast path)
+
+Most requests are not experiments, just "make me a few X". Do this without asking first:
+1. Turn the wish into a job: start from the closest ready-made example (`--example`) or `my/RECIPES.md`, write the
+   character and scene tags yourself, pick the body drawing. Default style `ll_signature`, quality Final.
+2. `gen.py grid <id> ... --seeds 1,2,3,4 --open` (or `--vary` one thing if they were unsure, e.g. two bodies).
+   Tell them roughly how long it takes (section 7) and that the pictures appear in the Studio's *Rounds* tab.
+3. Look at every picture yourself (open the PNGs) before you talk about them, against the **quality bar** below.
+   Re-run the ones that fail with new seeds instead of showing them.
+4. Show them, say which you think is best and why in one line, ask what to change. When they like one, offer
+   "4 variations" or write it into `my/RECIPES.md`.
+
+### Quality bar
+
+`examples/bar/` holds pictures the kit's author approved as the Love Live standard, and `examples/examples.json` +
+`docs/guide/img/ex*.jpg` the kit's examples. A picture meets the bar when:
+- the eyes are **big and round with the show's highlight and pink blush**, not small or narrow. Small eyes usually mean the
+  face is too small in the frame: use a `_cowboy` body drawing or `upper body` / `cowboy shot` framing, or make sure the
+  body drawing fills its frame. Narrow, grown-up eyes mean the `ll_tv` style: use `ll_signature`.
+- line work is crisp and colours clean, flat cel shading (no glossy airbrushed skin, which means hype words crept in);
+- the body type is the one asked for (if not: body drawing + matching tags, strength 0.6-0.75);
+- she is the user's own girl, not a canon character (hair colour and uniform kept), unless they asked for fan art;
+- hands and props are plausible (re-roll seeds rather than show broken hands).
+Say plainly when a batch misses the bar and what you change.
 
 ## 4. Rounds: how we improve recipes together
 
@@ -205,6 +249,7 @@ is kept as `engine\ComfyUI_windows_portable.old-<date>`: delete it once the new 
 | card | engine build | Final 30 steps | Preview 18 | Small sketch | Turbo sketch | notes |
 |---|---|---|---|---|---|---|
 | RTX 5060 8 GB (test PC: Ryzen 5900X, 16 GB, measured 2026-11-17) | `modern` (torch cu130) | 56 s | 34 s | 18 s | 9 s | peak VRAM 7.3 GB with a body drawing |
+| H3-Image (optional) on RTX 5060 + 16 GB RAM | `modern` | H3_SPEED_5060 | | | | streams its 29 GB of weights from the SSD each picture; needs an SSD |
 | GTX 1070 8 GB | `pascal` (torch 2.14 cu126, the last PyTorch that supports it) | estimate 4-5 min | ~2.5 min | ~1.5 min | ~45 s | **not tested on real hardware**: estimates from compute throughput. Measure the first pictures and tell the user real numbers. On Windows ComfyUI runs this card in fp16; if pictures come out black, setup retries with `--fp32-vae`, then `--force-fp32` (slower). Driver: 580 branch (the last for GTX 10) |
 
 What the qualities are for: **Preview** is nearly the same picture as Final with the same seed (use it to check an
