@@ -110,7 +110,14 @@ exactly what they will see and what to press.
 - **Prompt order** (Anima was trained this way): `masterpiece, best quality, year 2016, anime screenshot, <character
   tags>, @murota yuuhei, <body tags>, <scene tags>`. Danbooru tags, lower case, spaces instead of underscores, one artist tag.
   Weights like `(curvy:1.6)` strengthen a tag (Anima needs 1.4-1.8 where older models used 1.2).
-- **Body type and pose:** a grey drawing of a body (`kit/controls/`, picked in the Studio) goes through the
+- **Body type: words first.** The body menu starts with *words only* bodies (tags with weights, no drawing): the
+  model's own idea of the body gives the best shapes (curvy, tall, soft, chibi) and natural poses; this matches the
+  kit author's reference batch. Curvy comes young (signature style) or grown-up (`mature female` + the `ll_tv` style:
+  older face, fuller figure). Athletic: `athletic, toned, slim, small waist` with `muscular, muscular female, biceps` in
+  the body's negative (a `neg` field in presets) so no six-pack; never `abs` or `(toned:1.3)`. Use a **drawing** when
+  the pose must be exact, the words don't reach the body (petite is weak in words), or a character must keep the same
+  body across pictures. The guide's section 5 shows both side by side with their limits.
+- **Body drawing details:** a grey drawing of a body (`kit/controls/`, picked in the Studio) goes through the
   **LLLite "any-test" adapter** at strength 0.6, active for the first 70% of the steps. It copies the proportions and
   pose. The style still comes from the prompt, and the background and clothes from the scene tags. Keep matching body tags in the
   prompt too. Higher strength copies the drawing's outfit and stiffness; lower gives the prompt more say. Without a
@@ -201,7 +208,7 @@ This is the loop the kit's author uses: try a few variants side by side, the hum
 |---|---|---|
 | "looks generic / like every AI picture" | no artist tag, hype words (`highly detailed, beautiful eyes`), canon-free style without face features | Make sure the style is one of the `ll_*` presets; remove hype words; add 2-3 face features (`tareme`, `tsurime`, `jitome`, `thick eyebrows`, `freckles`, `mole under eye`, `fang`) and a distinct hairstyle; round of 3 variants |
 | "all faces look the same" | same face tags every time | vary eye shape tags, eyebrow, mouth (`:d`, `smug`, `pout`), age look, hair intakes; try `ll_card` / `ll_2020` |
-| "wrong body / not curvy enough / too thin" | tags alone, or drawing strength low | pick the matching body drawing; strength 0.6 -> 0.75; strengthen tags `(curvy:1.8)`; a round across 0.5/0.6/0.75 |
+| "wrong body / not curvy enough / too thin" | words too weak for this seed/outfit, or a drawing whose shape is worse than the words | try the *words only* body first with a few seeds, strengthen `(curvy:1.8)`; if the words can't get it (petite) use the drawing, strength 0.6 -> 0.75; round across both |
 | "she's stiff / always standing straight" | the drawing locks the pose | use an idol/jump/wave/sit drawing, lower end to 0.5 or strength to 0.5, or no drawing (tags only) for dynamic poses |
 | "she became a Love Live character" | `ll_canon` style, or canon hair/uniform tags (`uranohoshi school uniform`, ashen hair + braid) | switch to `ll_tv`, change hair colour/style or uniform tags |
 | "extra fingers / weird hands" | normal for these models | new seeds (4 variations), `hands` out of frame (`upper body`), or `bad hands, extra fingers` in avoid |

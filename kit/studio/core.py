@@ -108,7 +108,8 @@ def build_negative(job, P=None):
     if job.get("engine") == "h3":
         return ""
     st = P["styles"][job.get("style") or P["default_style"]]
-    return clean(st.get("negative", P["negative"]) + ", " + (job.get("extra_neg") or ""))
+    body = P["bodies"].get(str(job.get("body") or "none"), {})
+    return clean(st.get("negative", P["negative"]) + ", " + body.get("neg", "") + ", " + (job.get("extra_neg") or ""))
 
 
 def control_file(job, P=None):

@@ -190,7 +190,7 @@ async function init(){
   $("#style").onchange=()=>{$("#styleAbout").textContent=P.styles[$("#style").value].about||"";preview()};
   $("#framing").innerHTML=Object.keys(P.framing).map(k=>`<option>${k}</option>`).join("");
   $("#quality").innerHTML=Object.entries(P.quality).map(([k,v])=>`<option value="${k}">${esc(v.label)}</option>`).join("");
-  $("#bodies").innerHTML=Object.entries(P.bodies).map(([k,v])=>`<div class="body" data-b="${k}" title="${esc(v.tags||'')}">${v.control?`<img loading="lazy" src="/control/${v.control}">`:'<div class="none">tags only</div>'}${esc(v.label)}</div>`).join("");
+  $("#bodies").innerHTML=Object.entries(P.bodies).map(([k,v])=>`<div class="body" data-b="${k}" title="${esc(v.tags||'')}">${v.control?`<img loading="lazy" src="/control/${v.control}">`:v.thumb?`<img loading="lazy" src="/control/${v.thumb}" style="object-fit:cover">`:'<div class="none">tags only</div>'}${esc(v.label)}</div>`).join("");
   $$(".body").forEach(d=>d.onclick=()=>setBody(d.dataset.b));
   $("#strength").oninput=()=>{$("#strengthV").textContent=$("#strength").value};
   ["#character","#scene","#extra_neg"].forEach(s=>$(s).addEventListener("input",preview));

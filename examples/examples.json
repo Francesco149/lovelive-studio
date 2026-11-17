@@ -136,9 +136,9 @@
   {
    "title": "Athletic dancer",
    "style": "ll_signature",
-   "body": "athletic_idol",
+   "body": "athletic_tags",
    "seed": 1,
-   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts, @murota yuuhei, (toned:1.3), athletic, full body, dance practice room, mirror, sweat, grin",
+   "prompt": "masterpiece, best quality, year 2016, anime screenshot, 1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts, @murota yuuhei, athletic, toned, slim, small waist, full body, dance practice room, mirror, sweat, grin",
    "img": "img/ex13.jpg",
    "character": "1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts",
    "scene": "dance practice room, mirror, sweat, grin",

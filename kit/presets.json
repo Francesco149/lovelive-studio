@@ -61,130 +61,208 @@
    "tags": "",
    "control": null
   },
+  "curvy_tags": {
+   "label": "Curvy (words only)",
+   "tags": "(curvy:1.6), (wide hips:1.4), thick thighs, large breasts, full body",
+   "control": null,
+   "thumb": "thumbs/curvy.jpg",
+   "kind": "words"
+  },
+  "curvy_grownup_tags": {
+   "label": "Curvy, grown-up (words only; pair with the TV look for an adult face)",
+   "tags": "(curvy:1.6), (wide hips:1.4), thick thighs, large breasts, mature female, full body",
+   "control": null,
+   "thumb": "thumbs/curvy_grownup.jpg",
+   "kind": "words"
+  },
+  "petite_tags": {
+   "label": "Petite (words only)",
+   "tags": "(petite:1.6), (short:1.3), small breasts, skinny, full body",
+   "control": null,
+   "thumb": "thumbs/petite.jpg",
+   "kind": "words"
+  },
+  "tall_tags": {
+   "label": "Tall (words only)",
+   "tags": "(tall female:1.6), (skinny:1.3), long legs, full body",
+   "control": null,
+   "thumb": "thumbs/tall.jpg",
+   "kind": "words"
+  },
+  "soft_tags": {
+   "label": "Soft and chubby (words only)",
+   "tags": "(plump:1.5), chubby, round face, thick arms, thick thighs, full body",
+   "control": null,
+   "thumb": "thumbs/soft.jpg",
+   "kind": "words"
+  },
+  "athletic_tags": {
+   "label": "Athletic (words only)",
+   "tags": "athletic, toned, slim, small waist, full body",
+   "control": null,
+   "thumb": "thumbs/athletic.jpg",
+   "kind": "words",
+   "neg": "muscular, muscular female, biceps"
+  },
+  "chibi_tags": {
+   "label": "Chibi (words only)",
+   "tags": "(chibi:1.8), (super deformed:1.4), full body",
+   "control": null,
+   "thumb": "thumbs/chibi.jpg",
+   "kind": "words"
+  },
   "average": {
    "label": "Average",
    "tags": "full body",
-   "control": "average.png"
+   "control": "average.png",
+   "kind": "drawing"
   },
   "average_idol": {
    "label": "Average, idol pose",
    "tags": "full body",
-   "control": "average_idol.png"
+   "control": "average_idol.png",
+   "kind": "drawing"
   },
   "average_cowboy": {
    "label": "Average, closer (thighs up)",
    "tags": "cowboy shot",
-   "control": "average_cowboy.png"
+   "control": "average_cowboy.png",
+   "kind": "drawing"
   },
   "average_wave": {
    "label": "Average, waving",
    "tags": "full body",
-   "control": "average_wave.png"
+   "control": "average_wave.png",
+   "kind": "drawing"
   },
   "average_jump": {
    "label": "Average, jumping",
    "tags": "full body, jumping",
-   "control": "average_jump.png"
+   "control": "average_jump.png",
+   "kind": "drawing"
   },
   "average_sit": {
    "label": "Average, sitting",
    "tags": "full body, sitting",
-   "control": "average_sit.png"
+   "control": "average_sit.png",
+   "kind": "drawing"
   },
   "petite": {
    "label": "Petite",
    "tags": "(petite:1.6), (short:1.3), small breasts, skinny, full body",
-   "control": "petite.png"
+   "control": "petite.png",
+   "kind": "drawing"
   },
   "petite_idol": {
    "label": "Petite, idol pose",
    "tags": "(petite:1.6), (short:1.3), small breasts, skinny, full body",
-   "control": "petite_idol.png"
+   "control": "petite_idol.png",
+   "kind": "drawing"
   },
   "petite_cowboy": {
    "label": "Petite, closer (thighs up)",
    "tags": "(petite:1.6), (short:1.3), small breasts, skinny, cowboy shot",
-   "control": "petite_cowboy.png"
+   "control": "petite_cowboy.png",
+   "kind": "drawing"
   },
   "tall": {
    "label": "Tall and slender",
    "tags": "(tall female:1.6), (skinny:1.3), long legs, full body",
-   "control": "tall.png"
+   "control": "tall.png",
+   "kind": "drawing"
   },
   "tall_idol": {
    "label": "Tall and slender, idol pose",
    "tags": "(tall female:1.6), (skinny:1.3), long legs, full body",
-   "control": "tall_idol.png"
+   "control": "tall_idol.png",
+   "kind": "drawing"
   },
   "tall_cowboy": {
    "label": "Tall and slender, closer (thighs up)",
    "tags": "(tall female:1.6), (skinny:1.3), long legs, cowboy shot",
-   "control": "tall_cowboy.png"
+   "control": "tall_cowboy.png",
+   "kind": "drawing"
   },
   "curvy": {
    "label": "Curvy",
    "tags": "(curvy:1.6), (wide hips:1.4), thick thighs, large breasts, mature female, full body",
-   "control": "curvy.png"
+   "control": "curvy.png",
+   "kind": "drawing"
   },
   "curvy_idol": {
    "label": "Curvy, idol pose",
    "tags": "(curvy:1.6), (wide hips:1.4), thick thighs, large breasts, mature female, full body",
-   "control": "curvy_idol.png"
+   "control": "curvy_idol.png",
+   "kind": "drawing"
   },
   "curvy_cowboy": {
    "label": "Curvy, closer (thighs up)",
    "tags": "(curvy:1.6), (wide hips:1.4), thick thighs, large breasts, mature female, cowboy shot",
-   "control": "curvy_cowboy.png"
+   "control": "curvy_cowboy.png",
+   "kind": "drawing"
   },
   "soft": {
    "label": "Soft and chubby",
    "tags": "(plump:1.5), chubby, round face, thick arms, thick thighs, full body",
-   "control": "soft.png"
+   "control": "soft.png",
+   "kind": "drawing"
   },
   "soft_idol": {
    "label": "Soft and chubby, idol pose",
    "tags": "(plump:1.5), chubby, round face, thick arms, thick thighs, full body",
-   "control": "soft_idol.png"
+   "control": "soft_idol.png",
+   "kind": "drawing"
   },
   "soft_cowboy": {
    "label": "Soft and chubby, closer (thighs up)",
    "tags": "(plump:1.5), chubby, round face, thick arms, thick thighs, cowboy shot",
-   "control": "soft_cowboy.png"
+   "control": "soft_cowboy.png",
+   "kind": "drawing"
   },
   "athletic": {
    "label": "Athletic",
-   "tags": "(toned:1.3), athletic, full body",
-   "control": "athletic.png"
+   "tags": "athletic, toned, slim, small waist, full body",
+   "control": "athletic.png",
+   "kind": "drawing",
+   "neg": "muscular, muscular female, biceps"
   },
   "athletic_idol": {
    "label": "Athletic, idol pose",
-   "tags": "(toned:1.3), athletic, full body",
-   "control": "athletic_idol.png"
+   "tags": "athletic, toned, slim, small waist, full body",
+   "control": "athletic_idol.png",
+   "kind": "drawing",
+   "neg": "muscular, muscular female, biceps"
   },
   "athletic_cowboy": {
    "label": "Athletic, closer (thighs up)",
-   "tags": "(toned:1.3), athletic, cowboy shot",
-   "control": "athletic_cowboy.png"
+   "tags": "athletic, toned, slim, small waist, cowboy shot",
+   "control": "athletic_cowboy.png",
+   "kind": "drawing",
+   "neg": "muscular, muscular female, biceps"
   },
   "chibi": {
    "label": "Chibi",
    "tags": "(chibi:1.8), (super deformed:1.4), full body",
-   "control": "chibi.png"
+   "control": "chibi.png",
+   "kind": "drawing"
   },
   "chibi_idol": {
    "label": "Chibi, peace sign",
    "tags": "(chibi:1.8), (super deformed:1.4), full body",
-   "control": "chibi_idol.png"
+   "control": "chibi_idol.png",
+   "kind": "drawing"
   },
   "chibi_jump": {
    "label": "Chibi, jumping",
    "tags": "(chibi:1.8), (super deformed:1.4), full body, jumping",
-   "control": "chibi_jump.png"
+   "control": "chibi_jump.png",
+   "kind": "drawing"
   },
   "chibi_drawn": {
    "label": "Chibi, arms crossed (drawn base)",
    "tags": "(chibi:1.8), (super deformed:1.4), full body, crossed arms",
-   "control": "drawn_chibi_arms_crossed.png"
+   "control": "drawn_chibi_arms_crossed.png",
+   "kind": "drawing"
   }
  },
  "quality": {
@@ -337,7 +415,7 @@
    "title": "Athletic dancer",
    "style": "ll_signature",
    "character": "1girl, solo, short red hair, hair intakes, orange eyes, thick eyebrows, sports bra, track jacket, shorts",
-   "body": "athletic_idol",
+   "body": "athletic_tags",
    "scene": "dance practice room, mirror, sweat, grin",
    "seed": 1
   },
