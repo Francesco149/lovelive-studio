@@ -126,6 +126,8 @@ def build_graph(job, P=None, s=None):
     q = P["quality"][job.get("quality") or "final"]
     ctrl = control_file(job, P)
     w, h = P["framing"][job.get("framing") or "portrait"] if not ctrl else P["framing"]["portrait"]
+    if q.get("scale"):  # smaller drafts for slow cards; multiples of 16
+        w, h = int(round(w * q["scale"] / 16) * 16), int(round(h * q["scale"] / 16) * 16)
     g = {
         "1": {"class_type": "UNETLoader", "inputs": {"unet_name": q["model"], "weight_dtype": "default"}, "_meta": {"title": "Image model"}},
         "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": P["text_encoder"], "type": "stable_diffusion", "device": "default"}, "_meta": {"title": "Text encoder"}},

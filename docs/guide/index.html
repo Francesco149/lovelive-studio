@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Love Live Studio Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: long-form guide, sticky contents rail on wide screens, figure strips that break out to full width.
+   Palette: Uchiura sea navy ink, Aqours sea blue, mikan orange, sand paper; prompt parts have their own four hues. */
+:root{
+  --paper:#f6f8fb; --sheet:#ffffff; --ink:#132235; --mute:#5b6b80; --line:#dbe3ee;
+  --sea:#1b7fc4; --mikan:#e8860c; --sea-soft:#e3f0fa; --mikan-soft:#fdf0de;
+  --p-style:#1b7fc4; --p-char:#c2417a; --p-body:#7a55c8; --p-scene:#2f9a64;
+  --shade:rgba(19,34,53,.06);
+  --f-display:"M PLUS Rounded 1c","Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;
+  --f-body:Inter,"Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",Consolas,"Cascadia Mono",monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0e1724; --sheet:#152234; --ink:#e7eef7; --mute:#9db0c6; --line:#263a52;
+  --sea:#5fb3f0; --mikan:#f5a63c; --sea-soft:#17324b; --mikan-soft:#3a2a12;
+  --p-style:#5fb3f0; --p-char:#f07aae; --p-body:#b496f2; --p-scene:#62c992; --shade:rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0e1724; --sheet:#152234; --ink:#e7eef7; --mute:#9db0c6; --line:#263a52;
+  --sea:#5fb3f0; --mikan:#f5a63c; --sea-soft:#17324b; --mikan-soft:#3a2a12;
+  --p-style:#5fb3f0; --p-char:#f07aae; --p-body:#b496f2; --p-scene:#62c992; --shade:rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:220px minmax(0,1fr);gap:48px;padding-block:32px 80px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:0}}
+nav.toc{position:sticky;top:max(24px,env(safe-area-inset-top,0px));align-self:start;font-size:14px}
+@media (max-width:900px){nav.toc{position:static;margin-bottom:24px}}
+nav.toc b{font:800 13px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+nav.toc ol{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:2px}
+nav.toc a{color:var(--ink);text-decoration:none;display:block;padding:3px 8px;border-radius:6px}
+nav.toc a:hover,nav.toc a:focus-visible{background:var(--sea-soft);outline:none}
+nav.toc a span{color:var(--mute);font-variant-numeric:tabular-nums;margin-right:6px}
+main{min-width:0}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;line-height:1.2}
+h1{font-size:clamp(34px,5vw,54px);margin:0 0 12px;font-weight:800;letter-spacing:-.01em}
+h1 em{font-style:normal;color:var(--sea)}
+h2{font-size:clamp(24px,3vw,32px);margin:72px 0 12px;font-weight:800;scroll-margin-top:24px}
+h2 .n{color:var(--mikan);margin-right:.35em}
+h3{font-size:19px;margin:32px 0 8px;font-weight:800}
+p,li{max-width:68ch}
+p.lead{font-size:19px;color:var(--mute);max-width:60ch}
+a{color:var(--sea)}
+code,kbd{font-family:var(--f-mono);font-size:.88em;background:var(--sea-soft);padding:.1em .35em;border-radius:5px}
+.strip{display:grid;gap:12px;margin:18px 0}
+.strip.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.strip.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.strip.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.strip.c5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.strip.c6{grid-template-columns:repeat(6,minmax(0,1fr))}
+@media (max-width:700px){.strip.c4,.strip.c5,.strip.c6{grid-template-columns:repeat(3,minmax(0,1fr))}.strip.c3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px){.strip.c3,.strip.c4,.strip.c5,.strip.c6{grid-template-columns:repeat(2,minmax(0,1fr))}}
+figure{margin:0;min-width:0}
+figure img{display:block;width:100%;max-width:100%;height:auto;border-radius:10px;background:var(--line);cursor:zoom-in}
+figure.ctl img{background:#fff;border:1px solid var(--line)}
+figcaption{font-size:13px;color:var(--mute);margin-top:6px;line-height:1.4}
+figcaption b{color:var(--ink)}
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:28px;align-items:center}
+@media (max-width:760px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero .pics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.hero .pics img{border-radius:12px;width:100%;display:block}
+.hero .pics img:nth-child(2){transform:translateY(18px)}
+.kicker{font:800 13px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--mikan)}
+.box{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:18px 0;box-shadow:0 1px 0 var(--shade)}
+.box.tip{border-left:4px solid var(--mikan)}
+.box h4{margin:0 0 6px;font:800 15px var(--f-display)}
+.prompt{font:14px/1.7 var(--f-mono);background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow-x:auto;position:relative}
+.prompt .s{color:var(--p-style);font-weight:600}.prompt .c{color:var(--p-char)}.prompt .b{color:var(--p-body)}.prompt .sc{color:var(--p-scene)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--mute);margin:6px 0 0}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.order{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.order span{font:600 13px var(--f-mono);padding:6px 10px;border-radius:8px;color:#fff}
+.order .s{background:var(--p-style)}.order .c{background:var(--p-char)}.order .b{background:var(--p-body)}.order .sc{background:var(--p-scene)}
+:root .order span{color:var(--paper)}
+table{border-collapse:collapse;font-size:14px;width:100%}
+.tbl{overflow-x:auto;margin:14px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:800 13px var(--f-display);letter-spacing:.04em;color:var(--mute)}
+td code{white-space:nowrap}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.diagram{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:12px;overflow-x:auto;margin:18px 0}
+.diagram svg{display:block;min-width:680px;width:100%;height:auto}
+.diagram .bx{fill:var(--sea-soft);stroke:var(--sea);stroke-width:1.5}
+.diagram .bx2{fill:var(--mikan-soft);stroke:var(--mikan);stroke-width:1.5}
+.diagram .bx3{fill:var(--sheet);stroke:var(--line);stroke-width:1.5}
+.diagram .t{fill:var(--ink);font:700 14px var(--f-display)}
+.diagram .t2{fill:var(--mute);font:12px var(--f-body)}
+.diagram .ar{stroke:var(--mute);stroke-width:1.6;fill:none;marker-end:url(#arw)}
+.diagram .arh{fill:var(--mute)}
+.diagram .on{fill:var(--p-body)}.diagram .off{fill:var(--line)}
+.ex{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;margin:18px 0}
+.ex article{background:var(--sheet);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.ex article img{width:100%;display:block;aspect-ratio:2/3;object-fit:cover;cursor:zoom-in}
+.ex .body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.ex h4{margin:0;font:800 15px var(--f-display)}
+.ex .meta{font-size:12px;color:var(--mute)}
+.ex .p{font:12px/1.5 var(--f-mono);color:var(--mute);word-break:break-word}
+button.copy{align-self:flex-start;margin-top:auto;font:600 13px var(--f-body);color:var(--sea);background:var(--sea-soft);border:0;border-radius:8px;padding:5px 10px;cursor:pointer}
+button.copy:focus-visible{outline:2px solid var(--sea);outline-offset:2px}
+.say{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin:14px 0;padding:0;list-style:none}
+.say li{background:var(--sheet);border:1px solid var(--line);border-radius:12px 12px 12px 4px;padding:10px 12px;font-size:15px}
+#zoom{position:fixed;inset:0;background:rgba(8,14,22,.9);display:none;align-items:center;justify-content:center;z-index:30;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));cursor:zoom-out}
+#zoom.on{display:flex}
+#zoom img{max-width:100%;max-height:100%;border-radius:8px}
+footer{margin-top:80px;color:var(--mute);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <ol>
+    <li><a href="#how"><span>1</span>How a picture is made</a></li>
+    <li><a href="#models"><span>2</span>The models we use</a></li>
+    <li><a href="#lovelive"><span>3</span>Why it looks like Love Live</a></li>
+    <li><a href="#prompts"><span>4</span>Writing prompts</a></li>
+    <li><a href="#bodies"><span>5</span>Body types and poses</a></li>
+    <li><a href="#faces"><span>6</span>Avoiding the generic face</a></li>
+    <li><a href="#yours"><span>7</span>Make it yours</a></li>
+    <li><a href="#examples"><span>8</span>Examples to copy</a></li>
+    <li><a href="#studio"><span>9</span>The Studio and ComfyUI</a></li>
+    <li><a href="#claude"><span>10</span>Working with Claude</a></li>
+    <li><a href="#speed"><span>11</span>Speed on your PC</a></li>
+    <li><a href="#note"><span>12</span>A note on surprises</a></li>
+  </ol>
+</nav>
+<main>
+
+<section class="hero">
+  <div>
+    <div class="kicker">Love Live Studio guide</div>
+    <h1>Your own idols, drawn the <em>Sunshine!!</em> way</h1>
+    <p class="lead">This guide explains, with pictures, how the Studio turns a few words into a Love Live style picture,
+      how to write those words, how to pick a body type, and how to steer away from the "every AI picture looks the
+      same" face. Every picture here was made with exactly the settings shown next to it.</p>
+  </div>
+  <div class="pics" aria-hidden="true">
+    <img src="img/ex02.jpg" alt=""><img src="img/ex04.jpg" alt=""><img src="img/ex10.jpg" alt="">
+  </div>
+</section>
+
+<h2 id="how"><span class="n">1</span>How a picture is made</h2>
+<p>An image model doesn't paint like a person. It starts from pure noise, like TV static, and removes a little of that
+noise in each of 30 <b>steps</b>. At every step it checks your prompt and asks itself: "what would this picture look like
+with slightly less noise, if it were <i>this</i>?" After 30 steps only the picture is left.</p>
+<div class="strip c6">
+  <figure><img src="img/steps_01.jpg" alt="Step 1: almost only noise"><figcaption><b>Step 1</b> of 30: noise</figcaption></figure>
+  <figure><img src="img/steps_03.jpg" alt="Step 3"><figcaption><b>Step 3</b>: blobs of colour</figcaption></figure>
+  <figure><img src="img/steps_06.jpg" alt="Step 6"><figcaption><b>Step 6</b>: pose and layout settle</figcaption></figure>
+  <figure><img src="img/steps_10.jpg" alt="Step 10"><figcaption><b>Step 10</b>: shapes</figcaption></figure>
+  <figure><img src="img/steps_15.jpg" alt="Step 15"><figcaption><b>Step 15</b>: details appear</figcaption></figure>
+  <figure><img src="img/steps_30.jpg" alt="Step 30: finished"><figcaption><b>Step 30</b>: finished</figcaption></figure>
+</div>
+<p>Two things follow from this:</p>
+<ul>
+  <li><b>The seed is the starting noise.</b> The same prompt with the same seed gives the same picture again. A new seed gives
+    a new picture, which is why "make 4" gives four different girls from one prompt. If you like a picture, keep its seed
+    and change small things in the prompt.</li>
+  <li><b>The big decisions happen early.</b> Pose, framing and body shape are settled in the first few steps, and faces, eyes
+    and line work at the end. That's why the body drawing (section 5) only needs to steer the first 70% of the steps.</li>
+</ul>
+
+<div class="diagram" role="img" aria-label="Your prompt goes to the text encoder, which turns words into numbers. The image model starts from noise and removes it in 30 steps, guided by those numbers and optionally by a body drawing through the body adapter. The VAE turns the result into pixels.">
+<svg viewBox="0 0 980 250" xmlns="http://www.w3.org/2000/svg">
+  <defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arh" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+  <rect class="bx3" x="10" y="40" width="150" height="74" rx="10"/>
+  <text class="t" x="85" y="70" text-anchor="middle">Your prompt</text>
+  <text class="t2" x="85" y="92" text-anchor="middle">tags, separated by commas</text>
+  <path class="ar" d="M160,77 L200,77"/>
+  <rect class="bx" x="200" y="40" width="190" height="74" rx="10"/>
+  <text class="t" x="295" y="66" text-anchor="middle">Text encoder</text>
+  <text class="t2" x="295" y="86" text-anchor="middle">Qwen3 0.6B: reads the words,</text>
+  <text class="t2" x="295" y="102" text-anchor="middle">turns them into numbers</text>
+  <path class="ar" d="M390,77 L440,77"/>
+  <rect class="bx2" x="440" y="20" width="250" height="114" rx="10"/>
+  <text class="t" x="565" y="50" text-anchor="middle">Image model: Anima 2B</text>
+  <text class="t2" x="565" y="72" text-anchor="middle">starts from noise (the seed) and</text>
+  <text class="t2" x="565" y="88" text-anchor="middle">removes it in 30 steps, guided</text>
+  <text class="t2" x="565" y="104" text-anchor="middle">by the numbers. Knows anime styles,</text>
+  <text class="t2" x="565" y="120" text-anchor="middle">artists, shows and years.</text>
+  <path class="ar" d="M690,77 L740,77"/>
+  <rect class="bx" x="740" y="40" width="130" height="74" rx="10"/>
+  <text class="t" x="805" y="66" text-anchor="middle">VAE</text>
+  <text class="t2" x="805" y="86" text-anchor="middle">turns the result</text>
+  <text class="t2" x="805" y="102" text-anchor="middle">into pixels</text>
+  <path class="ar" d="M870,77 L910,77"/>
+  <text class="t" x="945" y="82" text-anchor="middle">picture</text>
+  <rect class="bx3" x="200" y="170" width="190" height="64" rx="10"/>
+  <text class="t" x="295" y="196" text-anchor="middle">Body drawing</text>
+  <text class="t2" x="295" y="216" text-anchor="middle">a grey picture of a body (optional)</text>
+  <path class="ar" d="M390,202 L440,202"/>
+  <rect class="bx" x="440" y="170" width="250" height="64" rx="10"/>
+  <text class="t" x="565" y="196" text-anchor="middle">Body adapter (LLLite)</text>
+  <text class="t2" x="565" y="216" text-anchor="middle">nudges every step toward that body</text>
+  <path class="ar" d="M565,170 L565,136"/>
+</svg>
+</div>
+
+<h2 id="models"><span class="n">2</span>The models we use</h2>
+<p>Four files, about 5.6 GB together, all running on your graphics card:</p>
+<div class="tbl"><table>
+  <thead><tr><th>Part</th><th>File</th><th>Size</th><th>What it does</th></tr></thead>
+  <tbody>
+  <tr><td><b>Anima Aesthetic 1.1</b></td><td><code>anima-aesthetic-v1.1</code></td><td class="num">4.2 GB</td><td>The image model: a 2 billion parameter anime model trained on millions of pictures from Danbooru, an anime art archive where every picture is labelled with tags (hair colour, clothes, artist, show, year). Because it learned from those tags, it understands them very precisely. That is what makes the Love Live look possible.</td></tr>
+  <tr><td><b>Qwen3 0.6B</b></td><td><code>qwen_3_06b_base</code></td><td class="num">1.2 GB</td><td>The text encoder: reads your prompt and hands its meaning to Anima as numbers.</td></tr>
+  <tr><td><b>Qwen-Image VAE</b></td><td><code>qwen_image_vae</code></td><td class="num">0.25 GB</td><td>Anima works on a small compressed version of the picture (much faster). The VAE turns that into the full-size picture at the end.</td></tr>
+  <tr><td><b>Anima LLLite "any-test"</b></td><td><code>anima-lllite-any-test-like-v2</code></td><td class="num">16 MB</td><td>A small add-on that lets a picture steer the drawing: here, a grey drawing of a body and pose.</td></tr>
+  </tbody>
+</table></div>
+<p>They run inside <b>ComfyUI</b>, the engine that loads the models and does the steps. The Studio page is a simple
+front for it. Claude installed a fixed, tested version of ComfyUI and never updates it on its own, so nothing breaks
+by surprise.</p>
+
+<h2 id="lovelive"><span class="n">3</span>Why it looks like Love Live</h2>
+<p>Love Live! Sunshine!! has a very recognisable look: crisp clean outlines, big round eyes with a bright highlight,
+saturated colours, neat pink blush hatching on the cheeks, the seaside light of Numazu. Anima learned that look
+from the show's own screenshots and art on Danbooru. Three tags call it up:</p>
+<div class="order" aria-label="The three style tags">
+  <span class="s">@murota yuuhei</span><span class="s">year 2016</span><span class="s">anime screenshot</span>
+</div>
+<ul>
+  <li><code>@murota yuuhei</code> is the show's <b>character designer</b>, who drew how every Aqours girl looks. On Danbooru
+    he is an artist tag, and the <code>@</code> tells Anima "draw like this artist". This tag carries most of the look.</li>
+  <li><code>year 2016</code> is when the show aired. The year pulls in that period's colouring and eye style.</li>
+  <li><code>anime screenshot</code> asks for a frame from the TV show itself rather than a fan painting.</li>
+</ul>
+<p>The show's own name is <b>left out on purpose</b>. With <code>love live! sunshine!!</code> in the prompt, the model
+starts drawing the show's actual characters. Below, the same prompt for a silver-haired girl of our own was run in
+each style, with two seeds:</p>
+<div class="strip c5">
+  <figure><img src="img/style_generic.jpg" alt="Generic AI anime"><figcaption><b>No style tags</b> (just "highly detailed, beautiful eyes"): the glossy face every AI anime picture has.</figcaption></figure>
+  <figure><img src="img/style_tv.jpg" alt="Love Live TV look"><figcaption><b>TV look</b> <code>ll_tv</code>: clearly Love Live, still our own girl. The default.</figcaption></figure>
+  <figure><img src="img/style_card.jpg" alt="Card art look"><figcaption><b>Card look</b> <code>ll_card</code>: <code>official art</code> instead of <code>anime screenshot</code>. Softer, like a game card.</figcaption></figure>
+  <figure><img src="img/style_2020.jpg" alt="Year 2020"><figcaption><b>Year 2020</b> <code>ll_2020</code>: a little crisper and newer.</figcaption></figure>
+  <figure><img src="img/style_canon.jpg" alt="Series tag turns her into You"><figcaption><b>With the show's name</b> <code>ll_canon</code>: she turns into You Watanabe, uniform and all. Use it for fan art of the real characters.</figcaption></figure>
+</div>
+<div class="box tip"><h4>The one rule</h4>The Love Live look comes from the designer tag. Keep <code>@murota yuuhei</code> in every prompt, and
+leave words like "highly detailed" or "beautiful eyes" out: they pull the picture back to the generic look.</div>
+
+<h2 id="prompts"><span class="n">4</span>Writing prompts</h2>
+<p>Anima learned from <b>tags</b>: short labels separated by commas, written in lower case with spaces. A tag-style prompt
+works better than a sentence. The Studio builds the prompt for you from four boxes, always in the order Anima was trained on:</p>
+<div class="prompt" aria-label="An example prompt coloured by part"><span class="s">masterpiece, best quality, year 2016, anime screenshot,</span> <span class="c">1girl, solo, long orange hair, side ponytail, green eyes, idol clothes, frilled dress, white gloves,</span> <span class="s">@murota yuuhei,</span> <span class="b">full body,</span> <span class="sc">concert stage, stage lights, light particles, smile, open mouth</span></div>
+<div class="legend"><span><i style="background:var(--p-style)"></i>style (fixed, from the style menu)</span><span><i style="background:var(--p-char)"></i>character (you write)</span><span><i style="background:var(--p-body)"></i>body (from the body drawing you pick)</span><span><i style="background:var(--p-scene)"></i>scene (you write)</span></div>
+
+<h3>The character box: who she is</h3>
+<ul>
+  <li>Always start with <code>1girl, solo</code> (or <code>2girls</code>, <code>3girls</code> for groups).</li>
+  <li>Hair: length + colour + style: <code>long orange hair, side ponytail</code>, <code>short silver hair, single braid</code>, <code>twin drills</code>, <code>hime cut</code>, <code>ahoge</code>.</li>
+  <li>Eyes: <code>green eyes</code>, and their shape (section 6): <code>tareme</code> (droopy), <code>tsurime</code> (sharp), <code>jitome</code> (half-lidded).</li>
+  <li>Clothes, piece by piece: <code>idol clothes, frilled dress, white gloves, hair ribbon</code>, <code>sailor school uniform, pleated skirt</code>, <code>yukata</code>, <code>oversized hoodie</code>.</li>
+</ul>
+<h3>The scene box: where she is and what she does</h3>
+<ul>
+  <li><b>Framing</b>, first: <code>full body</code> (head to toe), <code>cowboy shot</code> (head to thighs), <code>upper body</code>, <code>portrait</code> (face and shoulders).</li>
+  <li>Place and light: <code>concert stage, stage lights</code>, <code>seaside railing, ocean</code>, <code>school rooftop, sunset</code>, <code>night, fireworks</code>, <code>rain</code>.</li>
+  <li>Expression and action: <code>smile, open mouth</code>, <code>wink</code>, <code>looking back</code>, <code>holding umbrella</code>, <code>peace sign</code>.</li>
+  <li>Idol extras: <code>sparkle</code>, <code>light particles</code>, <code>idol clothes</code>, <code>stage lights</code>.</li>
+</ul>
+<h3>Making a tag stronger</h3>
+<p>Wrap it in brackets with a number: <code>(curvy:1.6)</code>. 1.0 is normal; Anima needs about <b>1.4 to 1.8</b> to really
+push a body tag. Above 2 things fall apart.</p>
+<h3>Things to avoid</h3>
+<p>The "Things to avoid" box (the negative prompt) lists what you don't want: <code>hat</code>, <code>glasses</code>,
+<code>bad hands, extra fingers</code>. The usual quality words are already in it.</p>
+<h3>Finding the right tag</h3>
+<p>If you want something specific (a hairstyle, a piece of clothing), search for it on
+<a href="https://danbooru.donmai.us/wiki_pages/tag_groups" target="_blank" rel="noopener">Danbooru's tag groups</a>, or just ask
+Claude: "what's the tag for the hair buns on the side of the head?" (<code>double bun</code>). Tags with thousands of
+pictures work best. Write them with spaces, not underscores (the Studio fixes that for you).</p>
+
+<h2 id="bodies"><span class="n">5</span>Body types and poses</h2>
+<p>Words alone are unreliable for body types: <code>chibi</code> and <code>curvy</code> work, <code>petite</code> barely
+does, and the model quietly drifts back to its favourite body. The Studio solves that with a <b>body drawing</b>: a plain
+grey picture of a figure with the body and pose you want. The body adapter steers the drawing toward that shape, while
+the style still comes from the prompt and the outfit and background from your tags.</p>
+<div class="strip c6">
+  <figure class="ctl"><img src="img/ctl_average_idol.jpg" alt="Average body, idol pose drawing"><figcaption>average, idol pose</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_petite_stand.jpg" alt="Petite body drawing"><figcaption>petite</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_curvy_stand.jpg" alt="Curvy body drawing"><figcaption>curvy</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_tall_stand.jpg" alt="Tall body drawing"><figcaption>tall</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_soft_stand.jpg" alt="Soft body drawing"><figcaption>soft</figcaption></figure>
+  <figure class="ctl"><img src="img/ctl_chibi_stand.jpg" alt="Chibi body drawing"><figcaption>chibi</figcaption></figure>
+</div>
+<p>One idol, one stage, one seed, and only the body drawing changes:</p>
+<div class="strip c6">
+  <figure><img src="img/body_petite.jpg" alt="Petite idol"><figcaption><b>petite</b></figcaption></figure>
+  <figure><img src="img/body_curvy.jpg" alt="Curvy idol"><figcaption><b>curvy</b></figcaption></figure>
+  <figure><img src="img/body_tall.jpg" alt="Tall idol"><figcaption><b>tall</b></figcaption></figure>
+  <figure><img src="img/body_soft.jpg" alt="Soft idol"><figcaption><b>soft</b></figcaption></figure>
+  <figure><img src="img/body_athletic.jpg" alt="Athletic idol"><figcaption><b>athletic</b></figcaption></figure>
+  <figure><img src="img/body_chibi.jpg" alt="Chibi idol"><figcaption><b>chibi</b></figcaption></figure>
+</div>
+<p>The stage, the lights, the orange side ponytail and the Love Live face stay. Only the body changes. The drawings are
+on a plain white background, so they don't drag their own scene in.</p>
+
+<h3>How strongly to follow the drawing</h3>
+<div class="diagram" role="img" aria-label="Of the 30 steps, the body drawing steers the first 21 (70%), at strength 0.6; the last 9 steps are left free for details.">
+<svg viewBox="0 0 980 120" xmlns="http://www.w3.org/2000/svg">
+  <text class="t2" x="10" y="20">step 1</text><text class="t2" x="940" y="20" text-anchor="end">step 30</text>
+  <g id="cells"></g>
+  <text class="t" x="10" y="95">body drawing steers steps 1-21 (end = 0.7) at strength 0.6</text>
+  <text class="t2" x="980" y="95" text-anchor="end">steps 22-30: free, for faces and details</text>
+</svg>
+</div>
+<p><b>Strength</b> (the slider under the drawings) is how hard the drawing pulls. <b>0.6</b> is the tested value. At 0.8
+the girl copies more of the drawing: its stiff pose, its plain T-shirt shape, even its hair (the chibi on the right lost
+her side ponytail). At 0.4 the prompt gets more say again and the body type gets weaker. The drawing also fixes the
+<b>pose</b>, so use the idol / waving / jumping / sitting drawings for livelier pictures, or no drawing at all for the freest poses.</p>
+<div class="strip c4">
+  <figure><img src="img/body_tags_curvy.jpg" alt="Curvy from tags only"><figcaption><b>Curvy, tags only</b>: freer pose, the body follows the words</figcaption></figure>
+  <figure><img src="img/body_curvy.jpg" alt="Curvy with drawing 0.6"><figcaption><b>Curvy, drawing 0.6</b>: the shape exactly, a still pose</figcaption></figure>
+  <figure><img src="img/body_chibi.jpg" alt="Chibi drawing 0.6"><figcaption><b>Chibi, drawing 0.6</b></figcaption></figure>
+  <figure><img src="img/body_chibi_08.jpg" alt="Chibi drawing 0.8"><figcaption><b>Chibi, drawing 0.8</b>: loses the side ponytail</figcaption></figure>
+</div>
+<div class="box tip"><h4>Your own body drawing</h4>Any picture of one figure on a plain background works: a Studio picture of a body you
+like, a pose from a drawing, a 3D mannequin. Ask Claude: <i>"make a body drawing from this picture"</i>. It turns it grey,
+sizes it and adds it to your body menu. Erase the guide lines on a drawn head first, or the model draws them as a fringe
+over one eye.</div>
+
+<h2 id="faces"><span class="n">6</span>Avoiding the generic face</h2>
+<p>Most AI anime pictures share one face: big glossy eyes, tiny nose, soft gradient skin, the same smile. It shows up
+whenever the prompt gives the model nothing specific about <i>how</i> to draw. Two things beat it:</p>
+<ol>
+  <li><b>A locked style.</b> The designer tag already gives every face Love Live's eyes, line work and blush instead of the
+    model's average. This is the biggest single step.</li>
+  <li><b>Face features that real character designers use.</b> Eye shape, eyebrows, freckles, a mole, a fang. Two or three
+    of them make a face someone could recognise again.</li>
+</ol>
+<p>Same girl, same seed, one feature changed at a time:</p>
+<div class="strip c6">
+  <figure><img src="img/face_generic.jpg" alt="Generic"><figcaption><b>generic</b>: no style tags</figcaption></figure>
+  <figure><img src="img/face_plain.jpg" alt="Love Live, plain"><figcaption><b>Love Live</b>, nothing added</figcaption></figure>
+  <figure><img src="img/face_tareme.jpg" alt="tareme"><figcaption><code>tareme</code>: soft, droopy eyes</figcaption></figure>
+  <figure><img src="img/face_tsurime.jpg" alt="tsurime"><figcaption><code>tsurime</code>: sharp, upturned eyes</figcaption></figure>
+  <figure><img src="img/face_jitome.jpg" alt="jitome"><figcaption><code>jitome</code>: half-lidded, unimpressed</figcaption></figure>
+  <figure><img src="img/face_eyebrows.jpg" alt="thick eyebrows"><figcaption><code>thick eyebrows</code></figcaption></figure>
+  <figure><img src="img/face_freckles.jpg" alt="freckles"><figcaption><code>freckles</code></figcaption></figure>
+  <figure><img src="img/face_mole.jpg" alt="mole under eye"><figcaption><code>mole under eye</code></figcaption></figure>
+  <figure><img src="img/face_fang.jpg" alt="fang"><figcaption><code>fang</code>: a little canine tooth</figcaption></figure>
+  <figure><img src="img/face_hair.jpg" alt="hair details"><figcaption><code>ahoge, hair intakes, sidelocks</code></figcaption></figure>
+  <figure><img src="img/face_combo.jpg" alt="combination"><figcaption><b>combined</b>: tareme, thick eyebrows, freckles, mole</figcaption></figure>
+  <figure><img src="img/ex14.jpg" alt="Example with jitome and fang"><figcaption>example "A face that isn't generic"</figcaption></figure>
+</div>
+<div class="box"><h4>Quick checklist</h4>
+<ul style="margin:0">
+  <li>A style from the style menu, with the designer tag in it.</li>
+  <li>No "highly detailed", "beautiful detailed eyes", "perfect face", "8k".</li>
+  <li>An eye shape (<code>tareme</code> / <code>tsurime</code> / <code>jitome</code>) plus one or two marks (<code>freckles</code>, <code>mole under eye</code>, <code>thick eyebrows</code>, <code>fang</code>).</li>
+  <li>An expression that isn't the default smile: <code>smug</code>, <code>pout</code>, <code>grin</code>, <code>:d</code>, <code>serious</code>.</li>
+  <li>A distinct hair silhouette: <code>ahoge</code>, <code>hair intakes</code>, <code>twin drills</code>, <code>side ponytail</code>, <code>single braid</code>.</li>
+</ul></div>
+
+<h2 id="yours"><span class="n">7</span>Make it yours: tuning the style</h2>
+<p>The Love Live look is the base. Small additions shift it toward a style of your own while the faces keep their Love
+Live bones. Same girl, same seed, one change each:</p>
+<div class="strip c6" id="tune"></div>
+<p>Combine what you like (for example <code>year 2013</code> + <code>pastel colors</code>), then ask Claude to make it a
+<b>named style</b> in your style menu. Claude tests it on a few characters first (a <i>round</i>, section 10) so it holds
+up beyond one lucky picture.</p>
+<div class="box tip"><h4>Body type as part of your style</h4>Your style can include a body: say "my girls are all a bit
+shorter and softer". Claude can make a body drawing for it and put both together as one preset.</div>
+
+<h2 id="examples"><span class="n">8</span>Examples to copy</h2>
+<p>Every one of these is in the Studio's <b>"Start from a ready-made prompt"</b> menu, with these exact settings. Pick one,
+change the hair or the scene, and press <i>Make pictures</i>. Click a picture to see it bigger.</p>
+<div class="ex" id="exgrid"></div>
+
+<h2 id="studio"><span class="n">9</span>The Studio and ComfyUI</h2>
+<h3>The Studio (your everyday page)</h3>
+<p>Double-click <b>Love Live Studio</b> on your desktop. It opens in your browser:</p>
+<figure><img src="img/studio.jpg" alt="The Studio page: prompt boxes on the left, body drawings, pictures on the right"></figure>
+<ul>
+  <li><b>Create</b>: pick a ready-made prompt, style, character, scene, body drawing, then <i>Make pictures</i>. "What the AI reads" shows the full prompt.</li>
+  <li>Click any picture: rate it (&#10084;&#65039; &#128077; &#128528; &#128078;), write what you think, <i>Use these settings</i> again, or make <i>4 variations</i>.</li>
+  <li><b>My pictures</b>: everything you've made, searchable, with a "loved and liked only" filter.</li>
+  <li><b>Rounds to judge</b>: test pictures Claude made for you to compare (section 10).</li>
+  <li>Your pictures are saved in the Studio's data folder under <code>outputs</code>.</li>
+</ul>
+<h3>ComfyUI (if you're curious)</h3>
+<p>The engine has its own editor at <a href="http://127.0.0.1:8188" target="_blank" rel="noopener">127.0.0.1:8188</a> while the Studio runs.
+In <b>Workflows</b> you'll find <i>Love Live - body drawing</i> and <i>Love Live - tags only</i>, the same recipe laid out
+as boxes and wires. Edit only the pink boxes and press <b>Run</b>. Tip: drag any picture from your <code>outputs</code>
+folder onto ComfyUI and it reopens with that picture's exact settings. If you ever mess it up, ask Claude to reset it.</p>
+<figure><img src="img/comfyui.jpg" alt="The Love Live workflow in ComfyUI with pink prompt boxes"></figure>
+
+<h2 id="claude"><span class="n">10</span>Working with Claude</h2>
+<p>Open Claude, start a Code session in the Studio's folder, and talk normally. Vague is fine:</p>
+<ul class="say">
+  <li>"Make her look less generic."</li>
+  <li>"I want a chubby girl at a summer festival, cuter than the example."</li>
+  <li>"Can we make a style that's more my own? Softer colours, a bit retro."</li>
+  <li>"Make a body drawing from this picture."</li>
+  <li>"Why does she always have extra fingers?"</li>
+  <li>"The page won't open." / "Pictures come out black." / "My disk is full."</li>
+</ul>
+<h3>Rounds</h3>
+<p>For anything with more than one possible answer, Claude makes a small <b>round</b>: a few versions side by side, with
+one thing changed between them and the same seeds, so the comparison is fair. You'll find them in the Studio's
+<b>Rounds to judge</b> tab. Rate the pictures, write what you think, and tell Claude you're done. Claude then writes the
+winner into your <b>recipe book</b> (<code>my/RECIPES.md</code>), notes what you like (<code>my/TASTE.md</code>) and,
+if it's reusable, adds it to your menus. Each round makes the next pictures better.</p>
+<p>Claude also keeps everything safe in a history (git) as it goes, so nothing gets lost and any change can be undone.</p>
+
+<h2 id="speed"><span class="n">11</span>Speed on your PC</h2>
+<div class="tbl"><table>
+  <thead><tr><th>Graphics card</th><th>Final (30 steps)</th><th>Quick draft</th><th>Notes</th></tr></thead>
+  <tbody id="speedrows">
+  <tr><td>RTX 5060 8 GB (tested)</td><td class="num">about 56 s</td><td class="num" id="sp-draft-5060">-</td><td>The first picture after starting takes a minute longer while the models load.</td></tr>
+  <tr><td>GTX 1070 8 GB</td><td class="num">several minutes (estimate)</td><td class="num">-</td><td>Older cards are much slower at this kind of maths. Use <b>Quick draft</b> to explore and Final for keepers; make 1-2 at a time.</td></tr>
+  </tbody>
+</table></div>
+<p>The Studio shows "about N seconds per picture" under the button once it has timed a few of yours. Close games and
+video while it works: they share the graphics card.</p>
+
+<h2 id="note"><span class="n">12</span>A note on surprises</h2>
+<p>Anime models learned from an enormous collection of internet art, and some of it is revealing. Even an innocent prompt
+(a maid outfit, a swimsuit, a "curvy" body) can now and then come out more revealing than you meant. That's a quirk of the
+training data, not something you did. It stays on your PC; ignore it, delete it, or tell Claude if you'd like it to
+steer away from that in general.</p>
+
+<footer>Love Live Studio guide. Recipes tested on Anima Aesthetic 1.1 with ComfyUI v0.45.0. Every picture's settings are in <code>examples/</code>.</footer>
+</main>
+</div>
+<div id="zoom" role="dialog" aria-label="Enlarged picture"><img alt=""></div>
+<script id="exdata" type="application/json">[]</script>
+<script id="tunedata" type="application/json">[]</script>
+<script>
+(function(){
+  // the 30-step bar
+  var g=document.getElementById("cells"), ns="http://www.w3.org/2000/svg";
+  for(var i=0;i<30;i++){var r=document.createElementNS(ns,"rect");r.setAttribute("x",10+i*31.5);r.setAttribute("y",32);r.setAttribute("width",28);r.setAttribute("height",34);r.setAttribute("rx",4);r.setAttribute("class",i<21?"on":"off");if(i<21)r.setAttribute("opacity","0.85");g.appendChild(r)}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+  var ex=JSON.parse(document.getElementById("exdata").textContent);
+  document.getElementById("exgrid").innerHTML=ex.map(function(e,i){return '<article><img loading="lazy" src="'+esc(e.img)+'" alt="'+esc(e.title)+'"><div class="body"><h4>'+esc(e.title)+'</h4><div class="meta">style '+esc(e.style)+' &middot; body: '+esc(e.body)+' &middot; seed '+esc(e.seed)+'</div><div class="p">'+esc(e.prompt)+'</div><button class="copy" type="button" data-i="'+i+'">Copy prompt</button></div></article>'}).join("");
+  document.querySelectorAll("button.copy").forEach(function(b){b.addEventListener("click",function(){var t=ex[b.dataset.i].prompt;
+    var done=function(){b.textContent="Copied";setTimeout(function(){b.textContent="Copy prompt"},1500)};
+    try{navigator.clipboard.writeText(t).then(done,function(){sel(b)})}catch(e){sel(b)}})});
+  function sel(b){var p=b.previousElementSibling;var r=document.createRange();r.selectNodeContents(p);var s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Selected: press Ctrl+C"}
+  var tu=JSON.parse(document.getElementById("tunedata").textContent);
+  document.getElementById("tune").innerHTML=tu.map(function(t){return '<figure><img loading="lazy" src="'+esc(t.img)+'" alt="'+esc(t.label)+'"><figcaption><b>'+esc(t.label)+'</b>'+(t.note?': '+esc(t.note):'')+'</figcaption></figure>'}).join("");
+  var z=document.getElementById("zoom"),zi=z.querySelector("img");
+  document.addEventListener("click",function(e){var im=e.target.closest("figure img, .ex article img");if(im&&!z.contains(im)){zi.src=im.dataset.full||im.src;zi.alt=im.alt;z.classList.add("on")}else if(z.contains(e.target)){z.classList.remove("on")}});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")z.classList.remove("on")});
+})();
+</script>
+</body>
+</html>

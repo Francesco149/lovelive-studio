@@ -149,6 +149,23 @@
    "cfg": 4.0,
    "sampler": "er_sde",
    "scheduler": "simple"
+  },
+  "small": {
+   "label": "Small draft (18 steps, 75% size)",
+   "model": "anima-aesthetic-v1.1.safetensors",
+   "steps": 18,
+   "cfg": 4.0,
+   "sampler": "er_sde",
+   "scheduler": "simple",
+   "scale": 0.75
+  },
+  "turbo": {
+   "label": "Turbo sketch (8 steps, needs the turbo model)",
+   "model": "anima-turbo-v1.1.safetensors",
+   "steps": 8,
+   "cfg": 1.0,
+   "sampler": "euler",
+   "scheduler": "simple"
   }
  },
  "framing": {
