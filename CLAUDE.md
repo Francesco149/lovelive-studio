@@ -152,6 +152,23 @@ exactly what they will see and what to press.
   video from this picture* and *Make it in 720p* in the viewer. Clips are `.mp4` files in the outputs like pictures; the
   contact sheet of a round shows a clip's middle frame; look at a clip with `gen.py frames <clip>` (a strip of 6 frames,
   PyAV from the engine). You can't hear the sound: ask the user how it sounds.
+- **Writing video prompts: a script, not a caption** (tested 2026-11-18, guide section 9 "Writing a clip"). H3 makes
+  picture and sound together and invents whatever is missing. Talking without given words = **babbling** (fake
+  Japanese). Every line written in quotes with its language = **said verbatim** (English and Japanese both checked by
+  transcription). Write it in time order:
+  1. Who is in it, each named by something visible ("the girl with long red hair", "on the left"); with a first frame
+     start "The girl in the picture, in the same 2D anime style".
+  2. What each does: one or two actions per 5 s.
+  3. Every spoken line: `she says happily in Japanese: "..."`; one short sentence takes 2-3 s, so 5 s holds one or two.
+     Several speakers: "First ... says ... Then ... says ...": the lines come out in that order, by the right girls.
+  4. Who stays silent: `says nothing; her mouth stays closed` (it works: closed mouth for the whole clip). For a clip
+     with no voices at all: `does not speak at all ... No voices.`
+  5. Sounds (wind, crowd, footsteps, a bell) and music (`soft piano music`, `upbeat idol pop`) or `No music`: unasked
+     music can appear.
+  6. Timing when it matters: `0-2 seconds: ... At 2 seconds: ... Until the end: ...` (followed in order).
+  Plain sentences work as well as MiniMax's tagged format (`(S1)`, `<d>[Japanese] ...</d>`, same lines and order in the
+  test). When the user describes a moment in their words, write the script for them, show it, then make the clip.
+  You can't hear the result: ask them whether the voices said the lines and nobody babbled.
 - **Files:** pictures in `<data>\outputs\<round>\`; every picture is logged in `my/history.jsonl` (prompt, seed, body,
   time); the user's ratings and notes in `my/feedback.jsonl` (Studio lightbox: love / like / so-so / not this + note).
 

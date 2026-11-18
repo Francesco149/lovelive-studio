@@ -170,7 +170,9 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
       pictures to keep her exactly as drawn (the Love Live look comes from the picture: the video model on its own draws generic anime).</p>
     <label class="h">What happens in the clip</label>
     <textarea id="vprompt" style="min-height:120px" placeholder="She takes a sip from her cup, smiles and waves at the camera while the sea breeze moves her hair. Waves and seagulls in the background."></textarea>
-    <div class="hint">Say what she does, how the camera moves and what we hear (music, sounds). Spoken words in quotes, with the language: she says in Japanese "mata ashita ne".</div>
+    <div class="hint"><b>Write it like a script</b>, in order: what each girl does, <b>every word she says</b> (in quotes, with the
+      language), who <b>stays silent</b>, the sounds and the music (or "no music"). Lines you don't write turn into babbling.
+      <button class="s" id="vexample" style="padding:2px 8px">show an example</button> <a href="/guide/#video-script" target="_blank">more in the Guide</a></div>
     <label class="h">First frame <small>(optional: the clip starts from this picture)</small></label>
     <div id="videodrop" class="drop">
       <div id="videoimgs" class="row" style="flex-wrap:wrap"></div>
@@ -340,6 +342,18 @@ function veta(){if(!STATE||!P||!P.video)return;const t=STATE.typical["video_"+$(
     ($("#vres").value===P.video.default_resolution?"<br>480p is quick to check. <b>Like a clip?</b> Click it and press <b>Make it in 720p</b>: the same description and seed, sharper (a close but not identical clip; about 2.5 times as long).":"")}
 async function makeVideo(o){await api("/api/generate",Object.assign({engine:"video"},o));showWorking()}
 function h3eta(){const t=STATE&&STATE.typical.h3;$("#h3eta").textContent=t&&t.none?`About ${Math.round(t.none)} seconds per picture on this PC.`:"H3 is big: the first picture loads about 29 GB of model files, so it takes a few minutes."}
+$("#vexample").onclick=()=>{if($("#vprompt").value.trim()&&!confirm("Replace what you wrote with an example script?"))return;
+  $("#vprompt").value=SLOTS.video.list.length?VEX_PIC:VEX_WORDS};
+const VEX_PIC=`The girl in the picture, in the same 2D anime style.
+0-2 seconds: she is silent, holding her cup with both hands and looking at the sea. Only waves and wind.
+At 2 seconds: a seagull cries and flies past; she turns to the camera, surprised.
+At 3 seconds: she laughs softly and says in Japanese: "びっくりした…"
+Until the end: she smiles and takes a sip, silent. No music.`;
+const VEX_WORDS=`Two anime girls in school uniforms on a school rooftop at sunset, 2D TV anime style.
+The girl with long red hair says happily in Japanese: "明日も一緒に帰ろうね！"
+The girl with short black hair says nothing; her mouth stays closed. She only nods and smiles.
+Then both look at the sunset as the wind moves their hair.
+Sounds: wind, distant city, a school bell far away. Soft piano music.`;
 $("#vgo").onclick=async()=>{const p=$("#vprompt").value.trim();if(!p){alert("Describe the clip first.");return}$("#vgo").disabled=true;
   try{await makeVideo({prompt:p,images:SLOTS.video.list.map(f=>"out:"+f),framing:$("#vframing").value,seconds:parseFloat($("#vsecs").value),resolution:$("#vres").value,seed:$("#vseed").value.trim()||null,count:parseInt($("#vcount").value)||1})}
   catch(e){alert(e.message)}setTimeout(()=>$("#vgo").disabled=false,800)};
