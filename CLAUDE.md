@@ -49,6 +49,9 @@ exactly what they will see and what to press.
    On a newer card (build `modern`) with an SSD and 40+ GB to spare, also offer **H3-Image** (`-Optional h3`, 29 GB):
    plain-English pictures, edits of their pictures, and custom body drawings from a description. Not on a GTX 10 card:
    its 20B model streams from disk and the card has no fast 4-bit maths, so a picture would take far too long.
+   On the same kind of PC, also offer **H3 video** (`-Optional video`, 32 GB alone; `-Optional h3,video` together is 48 GB
+   because they share the 16 GB text encoder): 3-8 second clips with sound from a description, best started from one of
+   their Love Live pictures. Same GTX 10 rule.
    Exit codes: 11 = not enough space, 13 = a download or unpack failed (run again; if it fails twice, check the
    internet), 14 = the engine or the self-test failed (section 6).
 5. **Show them the Studio:** `powershell -ExecutionPolicy Bypass -File kit/start.ps1` opens it in the browser
@@ -140,6 +143,15 @@ exactly what they will see and what to press.
   as she is drawn ... change only ...", which keeps an Anima Love Live girl's style. On its own its style is generic
   anime, so for Love Live pictures make the girl with Anima first, then edit with H3. Studio: the *Describe (H3)* tab and
   *Edit with H3* in the picture viewer. Speed on 8 GB: section 7.
+- **H3 video (optional set `video`, about 32 GB; shares H3-Image's text encoder):** MiniMax H3 FL2VA as Kijai's w4a8
+  file + the Pika H3 Flex 6-step LoRA, Comfy Kitchen (int8) attention, 24 fps mp4 with sound. Plain-sentence prompts
+  work: what she does, the camera, what we hear (spoken words in quotes with the language). **Start from a picture**
+  (first frame) for the Love Live look: it keeps her exactly as drawn; from words alone it is generic anime and may cut
+  between shots. Default 480p (shape from the picture), 5 s; 8 s and 720p work on 8 GB / 16 GB RAM (section 7). Offer
+  720p (same prompt and seed: a close, sharper clip) only for clips they like. Studio: the *Video (H3)* tab, *Make a
+  video from this picture* and *Make it in 720p* in the viewer. Clips are `.mp4` files in the outputs like pictures; the
+  contact sheet of a round shows a clip's middle frame; look at a clip with `gen.py frames <clip>` (a strip of 6 frames,
+  PyAV from the engine). You can't hear the sound: ask the user how it sounds.
 - **Files:** pictures in `<data>\outputs\<round>\`; every picture is logged in `my/history.jsonl` (prompt, seed, body,
   time); the user's ratings and notes in `my/feedback.jsonl` (Studio lightbox: love / like / so-so / not this + note).
 
@@ -152,6 +164,7 @@ kit\py.cmd kit\studio\gen.py one --character "1girl, solo, ..." --scene "..." --
 kit\py.cmd kit\studio\gen.py grid r03 --example "Idol on stage" --vary body=curvy_idol,petite_idol --seeds 1,2 --open
 kit\py.cmd kit\studio\gen.py round r03 my\rounds\r03.jobs.jsonl --title "..." --question "..."
 kit\py.cmd kit\studio\gen.py one --engine h3 --prompt "..." [--image out:r03/x_00001_.png]
+kit\py.cmd kit\studio\gen.py one --engine video --prompt "..." [--image out:r03/x_00001_.png] [--seconds 5] [--resolution 480p|720p]
 kit\py.cmd kit\studio\gen.py final r03/x_s2_00001_.png     (the same picture in Final quality)
 kit\py.cmd kit\studio\gen.py make-body soft_short --describe "..." --tags "..."   (then --pick N)
 kit\py.cmd kit\studio\gen.py feedback r03
@@ -224,7 +237,7 @@ This is the loop the kit's author uses: try a few variants side by side, the hum
 | "I want <another show / artist> style" | different designer | look the artist up on Danbooru (`https://danbooru.donmai.us/tags.json?search[name]=<tag>`, a few hundred posts = the model knows it), copy the `ll_tv` template with that `@artist` and year into `my/presets.json`, round of 2 seeds x 2 years |
 | "make it more original / my own style" | | Small style words (`pastel colors`, `flat color`, `thick lineart`, `watercolor (medium)`, `film grain`) barely move the Love Live look, even weighted (tested). What works: **a second artist tag** after `@murota yuuhei` (blends; see the experimental `ll_soft` / `ll_watercolor` styles), **a weaker designer** `(@murota yuuhei:0.6)` + another `year` + era tags (`ll_90s`), `year 2023` / `official art`, or Anima Base (optional download). Run a round of 4-6 artist blends on their character (Danbooru artists with 300+ posts), record the winner as a named style in `my/presets.json` |
 | "too slow" | GTX 10 card, or first picture (models loading) | Turbo or Small sketch to explore, Preview to check, Final for keepers (section 7); fewer pictures per click; close games/browsers using the GPU; section 7 |
-| "it got slow" after H3 pictures | H3's 29 GB crowd the 16 GB of RAM, so the Love Live model reloads from disk each time | `start.ps1 -Restart` when switching back from H3 to Love Live pictures for a while (measured on the test PC: ~75 s -> ~57 s); keep H3 work in one batch |
+| "it got slow" after H3 pictures or videos | H3's 29 GB (video: 32 GB) crowd the 16 GB of RAM, so the Love Live model reloads from disk each time | `start.ps1 -Restart` when switching back from H3 to Love Live pictures for a while (measured on the test PC: ~75 s -> ~57 s); keep H3 work in one batch |
 | "the page doesn't open / engine not running" | engine stopped or crashed | `start.ps1 -Restart`; read `<data>\logs\comfyui.err.log`; section 6 |
 | "black or grey pictures" | numeric overflow on old cards | `gen.py selftest`; add `--fp32-vae` to `extra_flags` in `my/settings.json`, restart; if still black, add `--force-fp32` (slower) |
 | "out of space" | outputs grew | section 6 "Space" |
@@ -265,7 +278,8 @@ is kept as `engine\ComfyUI_windows_portable.old-<date>`: delete it once the new 
 | card | engine build | Final 30 steps | Preview 18 | Small sketch | Turbo sketch | notes |
 |---|---|---|---|---|---|---|
 | RTX 5060 8 GB (test PC: Ryzen 5900X, 16 GB, measured 2026-11-17) | `modern` (torch cu130) | 56 s | 34 s | 18 s | 9 s | peak VRAM 7.3 GB with a body drawing |
-| H3-Image (optional) on RTX 5060 + 16 GB RAM | `modern` | H3_SPEED_5060 | | | | streams its 29 GB of weights from the SSD each picture; needs an SSD |
+| H3-Image (optional) on RTX 5060 + 16 GB RAM | `modern` | 17-25 s described, ~50 s an edit | | | | streams its 29 GB of weights from the SSD each picture; needs an SSD |
+| H3 video (optional) on RTX 5060 + 16 GB RAM (measured 2026-11-18) | `modern` | 480p 5 s: 2.4 min, 8 s: 4.2 min; 720p 5 s: 6.3 min | | | | the same every clip (nothing stays loaded with 16 GB RAM); peak VRAM 7.6 GB, free RAM down to 1.2 GB: close other programs while it works |
 | GTX 1070 8 GB | `pascal` (torch 2.14 cu126, the last PyTorch that supports it) | estimate 4-5 min | ~2.5 min | ~1.5 min | ~45 s | **not tested on real hardware**: estimates from compute throughput. Measure the first pictures and tell the user real numbers. On Windows ComfyUI runs this card in fp16; if pictures come out black, setup retries with `--fp32-vae`, then `--force-fp32` (slower). Driver: 580 branch (the last for GTX 10) |
 
 What the qualities are for: **Preview** is nearly the same picture as Final with the same seed (use it to check an

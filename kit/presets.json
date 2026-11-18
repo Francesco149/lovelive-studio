@@ -466,5 +466,36 @@
     1152
    ]
   }
+ },
+ "video": {
+  "_note": "MiniMax H3 video (optional model set 'video'; uses the 'h3' text encoder). FL2VA w4a8 + Pika Flex 6-step LoRA: a clip with sound from plain sentences, optionally from a first frame. Tested on RTX 5060 8 GB + 16 GB RAM (2026-11-18).",
+  "model": "minimax_h3_fl2va_pruned_w4a8_mixed.safetensors",
+  "lora": "pika_h3_flex_fl2va_v1_avg_rank_56_bf16.safetensors",
+  "text_encoder": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+  "vae": "minimax_h3_video_vae_int8_convrot.safetensors",
+  "audio_vae": "minimax_h3_audio_vae_fp32.safetensors",
+  "sampler": "lcm",
+  "sigmas": "1.0, 0.972973, 0.923077, 0.8, 0.571429, 0.333333, 0.0",
+  "attention": "comfy kitchen attention",
+  "fps": 24,
+  "default_seconds": 5,
+  "max_seconds": 8,
+  "seconds_choices": [
+   3,
+   5,
+   8
+  ],
+  "default_resolution": "480p",
+  "resolutions": {
+   "480p": 399360,
+   "720p": 921600
+  },
+  "framings": [
+   "auto",
+   "portrait",
+   "landscape",
+   "square",
+   "phone"
+  ]
  }
 }

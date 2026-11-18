@@ -69,8 +69,10 @@ def typical_secs(quality, body):
     hist = core.read_jsonl(os.path.join(core.MY, "history.jsonl"))
     if quality == "h3":
         xs = [r["secs"] for r in hist if r.get("engine") == "h3" and r.get("secs")][-7:]
+    elif quality.startswith("video_"):
+        xs = [r["secs"] for r in hist if r.get("engine") == "video" and r.get("resolution") == quality[6:] and r.get("secs")][-7:]
     else:
-        xs = [r["secs"] for r in hist if r.get("engine", "anima") != "h3" and r.get("quality") == quality
+        xs = [r["secs"] for r in hist if r.get("engine", "anima") == "anima" and r.get("quality") == quality
               and (r.get("body") != "none") == (body != "none") and r.get("secs")][-7:]
     return sorted(xs)[len(xs) // 2] if xs else None
 
@@ -92,9 +94,32 @@ class H(BaseHTTPRequestHandler):
     def file(self, path):
         if not os.path.isfile(path):
             return self.send(404, {"error": "not found"})
+        ctype = mimetypes.guess_type(path)[0] or "application/octet-stream"
+        size = os.path.getsize(path)
+        rng = self.headers.get("Range", "")
+        if rng.startswith("bytes=") and "," not in rng:  # video players seek with byte ranges
+            a, _, b = rng[6:].partition("-")
+            start = int(a) if a else max(0, size - int(b or 0))
+            end = min(int(b), size - 1) if a and b else size - 1
+            if start >= size:
+                self.send_response(416)
+                self.send_header("Content-Range", "bytes */%d" % size)
+                self.end_headers()
+                return
+            with open(path, "rb") as f:
+                f.seek(start)
+                data = f.read(end - start + 1)
+            self.send_response(206)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Range", "bytes %d-%d/%d" % (start, end, size))
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Accept-Ranges", "bytes")
+            self.end_headers()
+            self.wfile.write(data)
+            return
         with open(path, "rb") as f:
             data = f.read()
-        self.send(200, data, mimetypes.guess_type(path)[0] or "application/octet-stream")
+        self.send(200, data, ctype)
 
     def body(self):
         n = int(self.headers.get("Content-Length") or 0)
@@ -114,9 +139,12 @@ class H(BaseHTTPRequestHandler):
                 md = os.path.join(s.get("data_dir", ""), "models")
                 H = P.get("h3", {})
                 h3 = bool(H) and all(os.path.exists(os.path.join(md, d, H[k])) for d, k in (("diffusion_models", "model"), ("text_encoders", "text_encoder"), ("vae", "vae")))
-                return self.send(200, {"presets": P, "comfy_up": core.comfy_up(s), "h3_ready": h3, "code_stamp": STARTED_STAMP, "code_now": code_stamp(),
+                V = P.get("video", {})
+                video = bool(V) and all(os.path.exists(os.path.join(md, d, V[k])) for d, k in (("diffusion_models", "model"), ("text_encoders", "text_encoder"),
+                                                                                              ("vae", "vae"), ("vae", "audio_vae")) + ((("loras", "lora"),) if V.get("lora") else ()))
+                return self.send(200, {"presets": P, "comfy_up": core.comfy_up(s), "h3_ready": h3, "video_ready": video, "code_stamp": STARTED_STAMP, "code_now": code_stamp(),
                                        "machine": {k: s.get(k) for k in ("gpu", "vram_gb", "engine_build", "data_dir")},
-                                       "typical": {q: {b: typical_secs(q, b) for b in ("none", "body")} for q in list(P["quality"]) + ["h3"]}})
+                                       "typical": {q: {b: typical_secs(q, b) for b in ("none", "body")} for q in list(P["quality"]) + ["h3"] + ["video_" + k for k in V.get("resolutions", {})]}})
             if p == "/api/jobs":
                 with LOCK:
                     out = [{k: v for k, v in e.items()} for e in JOBS[-60:]]

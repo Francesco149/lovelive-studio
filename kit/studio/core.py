@@ -78,7 +78,7 @@ def clean(t):
 
 def build_prompt(job, P=None):
     P = P or presets()
-    if job.get("engine") == "h3":
+    if job.get("engine") in ("h3", "video"):
         return (job.get("prompt") or "").strip()
     st = P["styles"][job.get("style") or P["default_style"]]
     body = P["bodies"].get(job.get("body") or "none", P["bodies"]["none"]) if not str(job.get("body", "")).startswith("custom:") else {"tags": job.get("body_tags", "")}
@@ -92,7 +92,7 @@ def build_late_prompt(job, P=None):
     """The style's late prompt (used for the last steps only), or None. Eye colours are weighted up in it so the show's
     name does not recolour them toward a canon character's."""
     P = P or presets()
-    if job.get("engine") == "h3":
+    if job.get("engine") in ("h3", "video"):
         return None
     st = P["styles"][job.get("style") or P["default_style"]]
     late = st.get("late")
@@ -105,7 +105,7 @@ def build_late_prompt(job, P=None):
 
 def build_negative(job, P=None):
     P = P or presets()
-    if job.get("engine") == "h3":
+    if job.get("engine") in ("h3", "video"):
         return ""
     st = P["styles"][job.get("style") or P["default_style"]]
     body = P["bodies"].get(str(job.get("body") or "none"), {})
@@ -174,11 +174,77 @@ def build_graph_h3(job, P, s):
     return g
 
 
+VIDEO_ASPECT = {"portrait": 2 / 3, "landscape": 16 / 9, "square": 1.0, "phone": 9 / 16}
+
+
+def video_size(job, V, s):
+    """Width x height for a clip: the resolution's pixel count at the shape's aspect ("auto" = the first frame's), in
+    multiples of 32 (H3 needs them)."""
+    area = V["resolutions"][job.get("resolution") or V["default_resolution"]]
+    ar = VIDEO_ASPECT.get(job.get("framing") or "auto")
+    if ar is None:
+        ar = 2 / 3
+        if job.get("images"):
+            try:
+                from PIL import Image
+                with Image.open(resolve_picture(job["images"][0], s)) as im:
+                    ar = im.width / im.height
+            except Exception:
+                pass
+    w = max(256, int(round((area * ar) ** 0.5 / 32)) * 32)
+    h = max(256, int(round((area / ar) ** 0.5 / 32)) * 32)
+    return w, h
+
+
+def video_length(job, V):
+    secs = min(float(job.get("seconds") or V["default_seconds"]), V["max_seconds"])
+    return int(round(secs * V["fps"])) + 4  # 5 s -> 124 frames, as in MiniMax's examples
+
+
+def build_graph_video(job, P, s):
+    """MiniMax H3 video (FL2VA w4a8 + Pika Flex 6-step): a clip with sound from a description, optionally starting
+    from a picture (first frame). 480p 5 s takes about 2.5 minutes on an RTX 5060 8 GB with 16 GB RAM (720p: 6 min)."""
+    V = P["video"]
+    w, h = video_size(job, V, s)
+    g = {
+        "1": {"class_type": "UNETLoader", "inputs": {"unet_name": V["model"], "weight_dtype": "default"}, "_meta": {"title": "H3 video model"}},
+        "3": {"class_type": "CLIPLoader", "inputs": {"clip_name": V["text_encoder"], "type": "minimax", "device": "default"}, "_meta": {"title": "H3 text encoder"}},
+        "4": {"class_type": "VAELoader", "inputs": {"vae_name": V["vae"]}, "_meta": {"title": "Video VAE"}},
+        "5": {"class_type": "VAELoader", "inputs": {"vae_name": V["audio_vae"]}, "_meta": {"title": "Audio VAE"}},
+        "6": {"class_type": "MiniMaxH3ImageToVideo", "inputs": {"clip": ["3", 0], "vae": ["4", 0], "prompt": build_prompt(job, P), "width": w, "height": h,
+              "length": video_length(job, V)}, "_meta": {"title": "Prompt"}},
+        "7": {"class_type": "BasicGuider", "inputs": {"model": ["1", 0], "conditioning": ["6", 0]}},
+        "8": {"class_type": "KSamplerSelect", "inputs": {"sampler_name": V["sampler"]}},
+        "9": {"class_type": "ManualSigmas", "inputs": {"sigmas": V["sigmas"]}},
+        "10": {"class_type": "RandomNoise", "inputs": {"noise_seed": int(job["seed"])}},
+        "11": {"class_type": "SamplerCustomAdvanced", "inputs": {"noise": ["10", 0], "guider": ["7", 0], "sampler": ["8", 0], "sigmas": ["9", 0], "latent_image": ["6", 1]}, "_meta": {"title": "Sampler"}},
+        "12": {"class_type": "VAEDecode", "inputs": {"samples": ["11", 0], "vae": ["4", 0]}},
+        "13": {"class_type": "VAEDecodeAudio", "inputs": {"samples": ["11", 0], "vae": ["5", 0]}},
+        "14": {"class_type": "CreateVideo", "inputs": {"images": ["12", 0], "fps": float(V["fps"]), "audio": ["13", 0]}},
+        "15": {"class_type": "SaveVideo", "inputs": {"video": ["14", 0], "filename_prefix": "%s/%s" % (job["round"], job["name"]), "format": "mp4", "codec": "h264"}},
+    }
+    model = ["1", 0]
+    if V.get("lora"):
+        g["2"] = {"class_type": "LoraLoaderModelOnly", "inputs": {"model": model, "lora_name": V["lora"], "strength_model": 1.0}, "_meta": {"title": "6-step LoRA"}}
+        model = ["2", 0]
+    if V.get("attention"):
+        g["20"] = {"class_type": "ModelAttentionBackend", "inputs": {"model": model, "attention": V["attention"]}}
+        model = ["20", 0]
+    g["7"]["inputs"]["model"] = model
+    if job.get("images"):
+        g["16"] = {"class_type": "LoadImage", "inputs": {"image": stage_input(resolve_picture(job["images"][0], s), s)}, "_meta": {"title": "First frame"}}
+        g["17"] = {"class_type": "ImageScale", "inputs": {"image": ["16", 0], "upscale_method": "lanczos", "width": w, "height": h, "crop": "center"}}
+        g["6"]["inputs"]["first_frame"] = ["17", 0]
+    return g
+
+
 def build_graph(job, P=None, s=None):
     P = P or presets()
     s = s or settings()
     if job.get("engine") == "h3":
         return build_graph_h3(job, P, s)
+    if job.get("engine") == "video":
+        return build_graph_video(job, P, s)
     q = P["quality"][job.get("quality") or "final"]
     ctrl = control_file(job, P)
     w, h = P["framing"][job.get("framing") or "portrait"] if not ctrl else P["framing"]["portrait"]
@@ -256,7 +322,8 @@ def wait(prompt_id, s=None, timeout=3600):
                 raise RuntimeError("generation failed: %s" % (msgs[-1][1].get("exception_message", "") if msgs else "unknown"))
             imgs = []
             for o in e.get("outputs", {}).values():
-                imgs += o.get("images", [])
+                for k in ("images", "videos", "gifs"):
+                    imgs += o.get(k, [])
             if imgs or st.get("completed"):
                 return imgs
         time.sleep(1.0)
@@ -267,7 +334,7 @@ def new_job(job):
     j = dict(job)
     j.setdefault("style", presets()["default_style"])
     j.setdefault("quality", "draft")  # Preview: detailed enough to judge; remake keepers with gen.py final
-    j.setdefault("framing", "portrait")
+    j.setdefault("framing", "auto" if j.get("engine") == "video" else "portrait")
     j.setdefault("body", "none")
     if j.get("seed") in (None, "", -1, "-1"):
         j["seed"] = random.randint(1, 2**31 - 1)
@@ -301,10 +368,14 @@ def run(job, s=None, on_queued=None):
     files = [("%s/%s" % (i["subfolder"], i["filename"])).lstrip("/") for i in imgs if i.get("type") == "output"]
     rec = {"time": time.strftime("%Y-%m-%d %H:%M:%S"), "file": files[0] if files else None, "round": j["round"], "name": j["name"],
            "engine": j.get("engine", "anima"), "images": j.get("images"),
-           "style": j["style"] if j.get("engine") != "h3" else "h3", "character": j.get("character", ""), "body": j["body"], "body_tags": j.get("body_tags"),
+           "style": j.get("engine") if j.get("engine") in ("h3", "video") else j["style"], "character": j.get("character", ""), "body": j["body"], "body_tags": j.get("body_tags"),
            "scene": j.get("scene", ""), "extra_neg": j.get("extra_neg", ""), "quality": j["quality"], "framing": j["framing"],
            "seed": j["seed"], "strength": j.get("strength"), "prompt": build_prompt(j, P), "prompt_late": build_late_prompt(j, P), "negative": build_negative(j, P), "secs": secs,
            "note": j.get("note", "")}
+    if j.get("engine") == "video":
+        V = P["video"]
+        rec.update(seconds=round((video_length(j, V) - 4) / V["fps"], 1), resolution=j.get("resolution") or V["default_resolution"],
+                   size="%dx%d" % video_size(j, V, s))
     append_jsonl(os.path.join(MY, "history.jsonl"), rec)
     return rec
 

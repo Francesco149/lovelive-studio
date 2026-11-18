@@ -8,6 +8,7 @@
 :root{--bg:#fff7fb;--card:#fff;--ink:#2b2233;--mute:#7a6d85;--line:#ecdfe9;--accent:#e4508f;--accent2:#5b8def;--ok:#2e9d62;--bad:#c94a4a;--shadow:0 2px 10px rgba(80,30,70,.08)}
 @media (prefers-color-scheme:dark){:root{--bg:#1c1720;--card:#272030;--ink:#f3eaf6;--mute:#b3a6bd;--line:#3a3044;--shadow:none}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 "Segoe UI",system-ui,sans-serif}
 header{display:flex;align-items:center;gap:18px;padding:10px 18px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
 header h1{font-size:18px;margin:0;color:var(--accent)}
@@ -61,6 +62,12 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
 .drop{border:2px dashed var(--line);border-radius:10px;padding:8px}
 .drop.over{border-color:var(--accent);background:var(--bg)}
 #engine.upd{color:var(--accent);font-weight:600;cursor:pointer}
+#pk{position:fixed;inset:0;background:rgba(10,5,15,.7);display:none;z-index:25;padding:24px}
+#pk.on{display:block}
+.pkbox{max-width:1100px;margin:0 auto;max-height:calc(100vh - 48px);overflow:auto}
+.thumb video{width:100%;display:block;aspect-ratio:2/3;object-fit:cover;background:#000}
+#lb video{max-height:calc(100vh - 32px);max-width:calc(100vw - 420px);margin:auto;display:none}
+@media (max-width:900px){#lb video{max-width:100%;max-height:60vh}}
 .pill{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:1px 9px;font-size:12px;color:var(--mute);margin-right:4px}
 </style>
 </head>
@@ -70,6 +77,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
   <nav>
     <button data-p="create" class="on">Create</button>
     <button data-p="h3" id="h3tab" hidden>Describe (H3)</button>
+    <button data-p="video" id="videotab" hidden>Video (H3)</button>
     <button data-p="gallery">My pictures</button>
     <button data-p="rounds">Rounds to judge</button>
     <button onclick="window.open('/guide/','_blank')">Guide</button>
@@ -130,8 +138,9 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
     <label class="h">Pictures to edit <small>(up to 2; in the description call them Picture 1 / Picture 2)</small></label>
     <div id="h3drop" class="drop">
       <div id="h3imgs" class="row" style="flex-wrap:wrap"></div>
-      <div class="hint" style="margin-top:6px"><b>Paste</b> a picture here (Ctrl+V), <b>drop</b> one from a folder, <button class="s" id="h3pick" style="padding:2px 8px">choose a file</button>,
-        or open one of your pictures and press <b>Edit with H3</b>.</div>
+      <div class="hint" style="margin-top:6px"><b>Paste</b> a picture here (Ctrl+V), <b>drop</b> one from a folder,
+        <button class="s" id="h3pick" style="padding:2px 8px">choose a file</button>
+        <button class="s" id="h3lib" style="padding:2px 8px">pick from my pictures</button>, or open one of your pictures and press <b>Edit with H3</b>.</div>
       <input type="file" id="h3file" accept="image/png,image/jpeg,image/webp" multiple hidden>
     </div>
     <div class="row">
@@ -149,6 +158,41 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
  </div>
 </section>
 
+<section id="video" class="panel">
+ <div class="grid2">
+  <div class="card">
+    <p class="hint" style="margin-top:0">MiniMax H3 makes a <b>short clip with sound</b> from a description. Start it from one of your
+      pictures to keep her exactly as drawn (the Love Live look comes from the picture: the video model on its own draws generic anime).</p>
+    <label class="h">What happens in the clip</label>
+    <textarea id="vprompt" style="min-height:120px" placeholder="She takes a sip from her cup, smiles and waves at the camera while the sea breeze moves her hair. Waves and seagulls in the background."></textarea>
+    <div class="hint">Say what she does, how the camera moves and what we hear (music, sounds). Spoken words in quotes, with the language: she says in Japanese "mata ashita ne".</div>
+    <label class="h">First frame <small>(optional: the clip starts from this picture)</small></label>
+    <div id="videodrop" class="drop">
+      <div id="videoimgs" class="row" style="flex-wrap:wrap"></div>
+      <div class="hint" style="margin-top:6px"><b>Paste</b> a picture here (Ctrl+V), <b>drop</b> one from a folder,
+        <button class="s" id="videopick" style="padding:2px 8px">choose a file</button>
+        <button class="s" id="videolib" style="padding:2px 8px">pick from my pictures</button>, or open a picture and press <b>Make a video</b>.</div>
+      <input type="file" id="videofile" accept="image/png,image/jpeg,image/webp" multiple hidden>
+    </div>
+    <div class="row">
+      <div><label class="h">Shape</label><select id="vframing"></select></div>
+      <div><label class="h">Length</label><select id="vsecs"></select></div>
+      <div><label class="h">Sharpness</label><select id="vres"></select></div>
+    </div>
+    <div class="row">
+      <div><label class="h">How many</label><input type="number" id="vcount" min="1" max="4" value="1"></div>
+      <div><label class="h">Seed</label><input type="text" id="vseed" placeholder="random"></div>
+    </div>
+    <button class="go" id="vgo">Make video</button>
+    <div class="hint" id="veta" style="margin-top:6px"></div>
+  </div>
+  <div>
+    <div class="card jobsCard" style="margin-bottom:14px;display:none"><b>Working on</b><div class="jobs"></div></div>
+    <div class="card"><b>Just made</b><div class="thumbs" id="recent3" style="margin-top:10px"></div></div>
+  </div>
+ </div>
+</section>
+
 <section id="gallery" class="panel">
   <div class="row" style="margin-bottom:12px;max-width:600px">
     <select id="gfilter"><option value="all">All pictures</option><option value="fav">Only the ones I loved or liked</option></select>
@@ -160,8 +204,13 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
 <section id="rounds" class="panel"><div id="roundList"></div></section>
 </main>
 
+<div id="pk"><div class="card pkbox">
+  <div class="row" style="justify-content:space-between"><b>Pick one of your pictures</b><button class="s" style="flex:0" onclick="$('#pk').classList.remove('on')">Close &#10005;</button></div>
+  <div class="thumbs" id="pkList" style="margin-top:10px"></div></div></div>
+
 <div id="lb">
   <img id="lbImg" alt="">
+  <video id="lbVid" controls loop playsinline></video>
   <div class="side">
     <div class="row" style="justify-content:space-between"><b id="lbTitle"></b><button class="s" style="flex:0" onclick="closeLb()">Close &#10005;</button></div>
     <div class="rates row" style="margin:10px 0">
@@ -179,6 +228,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
     <div id="lbFinalRow" style="margin-top:12px" hidden><button class="go" id="lbFinal" style="margin-top:0;font-size:15px;padding:9px">Make it in Final quality</button>
       <div class="hint" id="lbFinalHint" style="margin-top:4px"></div></div>
     <div class="row" style="margin-top:6px" id="lbH3row" hidden><button class="s" id="lbH3">Edit with H3</button></div>
+    <div class="row" style="margin-top:6px" id="lbVidRow" hidden><button class="s" id="lbMakeVid">Make a video from this picture</button></div>
     <div class="row" style="margin-top:6px"><button class="s" id="lbOpen">Open the file</button></div>
     <details open><summary>Settings</summary><div class="mono" id="lbInfo"></div></details>
   </div>
@@ -211,9 +261,15 @@ async function init(){
   $("#go").onclick=generate;
   if(P.examples.length){ex.value=0;fill(P.examples[0])}else setBody("none");
   $("#styleAbout").textContent=P.styles[$("#style").value].about||"";
-  if(STATE.h3_ready&&P.h3){$("#h3tab").hidden=false;$("#h3framing").innerHTML=Object.keys(P.h3.sizes).map(k=>`<option>${k}</option>`).join("");showH3imgs();h3eta()}
+  if(STATE.h3_ready&&P.h3){$("#h3tab").hidden=false;$("#h3framing").innerHTML=Object.keys(P.h3.sizes).map(k=>`<option>${k}</option>`).join("");showSlot("h3");h3eta()}
+  if(STATE.video_ready&&P.video){const V=P.video;$("#videotab").hidden=false;
+    const FR={auto:"like the picture",portrait:"portrait 2:3",landscape:"landscape 16:9",square:"square",phone:"phone 9:16"};
+    $("#vframing").innerHTML=V.framings.map(k=>`<option value="${k}">${FR[k]||k}</option>`).join("");
+    $("#vsecs").innerHTML=V.seconds_choices.map(x=>`<option value="${x}"${x===V.default_seconds?" selected":""}>${x} seconds</option>`).join("");
+    $("#vres").innerHTML=Object.keys(V.resolutions).map(k=>`<option${k===V.default_resolution?" selected":""}>${k}</option>`).join("");
+    ["#vres","#vsecs"].forEach(x=>$(x).onchange=veta);showSlot("video");veta()}
   engine();setInterval(engine,8000);setInterval(pollJobs,1500);
-  const tab=()=>{const h=location.hash.slice(1);const b=document.querySelector(`nav button[data-p="${["rounds","gallery","h3"].includes(h)?h:"create"}"]`);if(b)b.click()};
+  const tab=()=>{const h=location.hash.slice(1);const b=document.querySelector(`nav button[data-p="${["rounds","gallery","h3","video"].includes(h)?h:"create"}"]`);if(b)b.click()};
   window.addEventListener("hashchange",tab);if(location.hash)tab();
   hist=await api("/api/history");showRecent();
 }
@@ -241,31 +297,45 @@ async function pollJobs(){let js;try{js=await api("/api/jobs")}catch(e){return}
   showJobs(act);
   let fresh=false;for(const j of js)if(j.status==="done"&&!seenDone.has(j.id)){seenDone.add(j.id);fresh=true}
   if(fresh){hist=await api("/api/history");showRecent()}}
-function jobName(j){if(j.job.engine==="h3")return(j.job.images||[]).length?"H3 edit":"H3";const q=P&&P.quality[j.job.quality||"final"];return q?q.label.split(/[ (:]/)[0]:""}
+function jobName(j){if(j.job.engine==="video")return"Video "+(j.job.resolution||"480p")+((j.job.images||[]).length?" from a picture":"");if(j.job.engine==="h3")return(j.job.images||[]).length?"H3 edit":"H3";const q=P&&P.quality[j.job.quality||"final"];return q?q.label.split(/[ (:]/)[0]:""}
 function showJobs(act){const h=act.map(j=>`<div class="job"><span class="dot ${j.status}"></span><span>${j.status==="running"?"drawing… "+Math.round(Date.now()/1000-j.started_at)+" s":j.status==="queued"?"waiting":"<b>problem:</b> "+esc(j.error)}</span><span class="hint">${esc(jobName(j))} · seed ${j.job.seed}</span></div>`).join("");
   $$(".jobsCard").forEach(c=>{c.style.display=act.length?"block":"none";c.querySelector(".jobs").innerHTML=h})}
 function showWorking(){$$(".jobsCard").forEach(c=>{c.style.display="block";if(!c.querySelector(".job"))c.querySelector(".jobs").innerHTML='<div class="job"><span class="dot running"></span><span>starting…</span></div>'});pollJobs()}
-function tile(r,label){return`<div class="thumb" data-f="${esc(r.file)}"><img loading="lazy" src="/img/${encodeURI(r.file)}">${label?`<span class="tag">${esc(label)}</span>`:""}${r.rating?`<span class="rate">${RATE[r.rating]}</span>`:""}</div>`}
+function tile(r,label){const v=isVid(r.file);return`<div class="thumb" data-f="${esc(r.file)}">${v?`<video muted loop playsinline preload="metadata" src="/img/${encodeURI(r.file)}#t=0.5" onmouseenter="this.play()" onmouseleave="this.pause()"></video>`:`<img loading="lazy" src="/img/${encodeURI(r.file)}">`}${label||v?`<span class="tag">${esc(label||"\u25B6 video")}</span>`:""}${r.rating?`<span class="rate">${RATE[r.rating]}</span>`:""}</div>`}
 function bind(el,list){el.querySelectorAll(".thumb").forEach(t=>t.onclick=()=>openLb(list.find(r=>r.file===t.dataset.f)||{file:t.dataset.f}))}
 function showRecent(){const l=hist.filter(r=>r.round!=="_selftest").slice(0,12);const h=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">Your pictures will show up here.</div>';
-  $("#recent").innerHTML=h;bind($("#recent"),l);$("#recent2").innerHTML=h;bind($("#recent2"),l)}
-let h3imgs=[];
-function showH3imgs(){$("#h3imgs").innerHTML=h3imgs.length?h3imgs.map((f,i)=>`<div class="thumb" style="flex:0 0 90px"><img src="/img/${encodeURI(f)}"><span class="tag">Picture ${i+1}</span><span class="rate" data-x="${i}" style="cursor:pointer">\u2715</span></div>`).join(""):'<span class="hint">none: a new picture from the description</span>';
-  $$("#h3imgs .rate").forEach(x=>x.onclick=e=>{e.stopPropagation();h3imgs.splice(+x.dataset.x,1);showH3imgs()})}
-function addH3(f){if(h3imgs.length>=2)h3imgs.shift();h3imgs.push(f);showH3imgs();
-  if(!$("#h3prompt").value.trim())$("#h3prompt").value="Keep the girl from Picture 1 exactly as she is drawn: the same anime style, line art, colours, face, hair and body. Change only this: "}
-async function uploadH3(files){for(const f of files){if(!f.type.startsWith("image/"))continue;
+  $("#recent").innerHTML=h;bind($("#recent"),l);$("#recent2").innerHTML=h;bind($("#recent2"),l);$("#recent3").innerHTML=h;bind($("#recent3"),l)}
+const KEEP="Keep the girl from Picture 1 exactly as she is drawn: the same anime style, line art, colours, face, hair and body. Change only this: ";
+const SLOTS={h3:{max:2,list:[],empty:"none: a new picture from the description",label:i=>"Picture "+(i+1),
+    onAdd:()=>{if(!$("#h3prompt").value.trim())$("#h3prompt").value=KEEP}},
+  video:{max:1,list:[],empty:"none: the clip starts from the description alone",label:()=>"First frame",onAdd:()=>{if($("#vframing").value!=="auto")$("#vframing").value="auto";veta()}}};
+const isVid=f=>/\.(mp4|webm|mov)$/i.test(f||"");
+function showSlot(k){const S=SLOTS[k];$("#"+k+"imgs").innerHTML=S.list.length?S.list.map((f,i)=>`<div class="thumb" style="flex:0 0 90px"><img src="/img/${encodeURI(f)}"><span class="tag">${S.label(i)}</span><span class="rate" data-x="${i}" style="cursor:pointer">\u2715</span></div>`).join(""):`<span class="hint">${S.empty}</span>`;
+  $$("#"+k+"imgs .rate").forEach(x=>x.onclick=e=>{e.stopPropagation();S.list.splice(+x.dataset.x,1);showSlot(k)})}
+function addTo(k,f){const S=SLOTS[k];if(S.list.length>=S.max)S.list.shift();S.list.push(f);showSlot(k);S.onAdd()}
+async function uploadTo(k,files){for(const f of files){if(!f.type.startsWith("image/"))continue;
   const data=await new Promise((ok,no)=>{const fr=new FileReader();fr.onload=()=>ok(fr.result);fr.onerror=no;fr.readAsDataURL(f)});
-  try{const r=await api("/api/upload",{data});addH3(r.file)}catch(e){alert(e.message)}}}
-document.addEventListener("paste",e=>{if(!$("#h3").classList.contains("on"))return;
+  try{const r=await api("/api/upload",{data});addTo(k,r.file)}catch(e){alert(e.message)}}}
+async function openPicker(k){hist=await api("/api/history");const l=hist.filter(r=>r.file&&r.round!=="_selftest"&&!isVid(r.file)).slice(0,120);
+  $("#pkList").innerHTML=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">No pictures yet.</div>';
+  $$("#pkList .thumb").forEach(t=>t.onclick=()=>{addTo(k,t.dataset.f);$("#pk").classList.remove("on")});$("#pk").classList.add("on")}
+document.addEventListener("paste",e=>{const k=["h3","video"].find(k=>$("#"+k).classList.contains("on"));if(!k)return;
   const fs=[...(e.clipboardData||{}).items||[]].filter(i=>i.kind==="file"&&i.type.startsWith("image/")).map(i=>i.getAsFile());
-  if(fs.length){e.preventDefault();uploadH3(fs)}});
-(()=>{const d=$("#h3drop");d.ondragover=e=>{e.preventDefault();d.classList.add("over")};d.ondragleave=()=>d.classList.remove("over");
-  d.ondrop=e=>{e.preventDefault();d.classList.remove("over");uploadH3([...e.dataTransfer.files])};
-  $("#h3pick").onclick=()=>$("#h3file").click();$("#h3file").onchange=()=>{uploadH3([...$("#h3file").files]);$("#h3file").value=""}})();
+  if(fs.length){e.preventDefault();uploadTo(k,fs)}});
+for(const k of Object.keys(SLOTS)){const d=$("#"+k+"drop");d.ondragover=e=>{e.preventDefault();d.classList.add("over")};d.ondragleave=()=>d.classList.remove("over");
+  d.ondrop=e=>{e.preventDefault();d.classList.remove("over");uploadTo(k,[...e.dataTransfer.files])};
+  $("#"+k+"pick").onclick=()=>$("#"+k+"file").click();$("#"+k+"file").onchange=()=>{uploadTo(k,[...$("#"+k+"file").files]);$("#"+k+"file").value=""};
+  $("#"+k+"lib").onclick=()=>openPicker(k)}
+function veta(){if(!STATE||!P||!P.video)return;const t=STATE.typical["video_"+$("#vres").value];const n=parseFloat($("#vsecs").value)||5;
+  $("#veta").innerHTML=esc(t&&t.none?`About ${Math.round(t.none/60*10)/10} minutes per clip on this PC.`:`A 5-second 480p clip takes about 2.5 minutes on an 8 GB card (8 seconds: about 4)${$("#vres").value!=="480p"?"; 720p takes about 2.5 times as long":""}.`)+
+    ($("#vres").value===P.video.default_resolution?"<br>480p is quick to check. <b>Like a clip?</b> Click it and press <b>Make it in 720p</b>: the same description and seed, sharper (a close but not identical clip; about 2.5 times as long).":"")}
+async function makeVideo(o){await api("/api/generate",Object.assign({engine:"video"},o));showWorking()}
 function h3eta(){const t=STATE&&STATE.typical.h3;$("#h3eta").textContent=t&&t.none?`About ${Math.round(t.none)} seconds per picture on this PC.`:"H3 is big: the first picture loads about 29 GB of model files, so it takes a few minutes."}
+$("#vgo").onclick=async()=>{const p=$("#vprompt").value.trim();if(!p){alert("Describe the clip first.");return}$("#vgo").disabled=true;
+  try{await makeVideo({prompt:p,images:SLOTS.video.list.map(f=>"out:"+f),framing:$("#vframing").value,seconds:parseFloat($("#vsecs").value),resolution:$("#vres").value,seed:$("#vseed").value.trim()||null,count:parseInt($("#vcount").value)||1})}
+  catch(e){alert(e.message)}setTimeout(()=>$("#vgo").disabled=false,800)};
 $("#h3go").onclick=async()=>{const p=$("#h3prompt").value.trim();if(!p){alert("Describe the picture first.");return}$("#h3go").disabled=true;
-  try{await api("/api/generate",{engine:"h3",prompt:p,images:h3imgs.map(f=>"out:"+f),framing:$("#h3framing").value,seed:$("#h3seed").value.trim()||null,count:parseInt($("#h3count").value)||1});showWorking()}
+  try{await api("/api/generate",{engine:"h3",prompt:p,images:SLOTS.h3.list.map(f=>"out:"+f),framing:$("#h3framing").value,seed:$("#h3seed").value.trim()||null,count:parseInt($("#h3count").value)||1});showWorking()}
   catch(e){alert(e.message)}setTimeout(()=>$("#h3go").disabled=false,800)};
 async function loadGallery(){hist=await api("/api/history");const f=$("#gfilter").value,q=$("#gsearch").value.toLowerCase();
   const l=hist.filter(r=>r.round!=="_selftest"&&(f==="all"||r.rating==="love"||r.rating==="like")&&(!q||(r.prompt||"").toLowerCase().includes(q)));
@@ -279,22 +349,36 @@ async function loadRounds(){const rs=await api("/api/rounds");hist=await api("/a
   rs.forEach(r=>{const box=document.querySelector(`.round textarea[data-round="${CSS.escape(r.id)}"]`);const el=box.closest(".round");bind(el,(r.items||[]).map(it=>Object.assign({},byF[it.file]||{},{file:it.file,label:it.label})))});
   $$("button[data-saveround]").forEach(b=>b.onclick=async()=>{const id=b.dataset.saveround;const t=document.querySelector(`textarea[data-round="${CSS.escape(id)}"]`);
     await api("/api/rate",{file:id+"/_round",rating:null,note:t.value});b.textContent="Sent ✓"})}
-function openLb(r){lbRec=r;$("#lbH3row").hidden=!(STATE&&STATE.h3_ready);$("#lbImg").src="/img/"+encodeURI(r.file);$("#lbTitle").textContent=r.label||r.name||r.file;$("#lbNote").value=r.note||"";
+function openLb(r){lbRec=r;const v=isVid(r.file);$("#lbH3row").hidden=v||!(STATE&&STATE.h3_ready);$("#lbVidRow").hidden=v||!(STATE&&STATE.video_ready);
+  $("#lbImg").style.display=v?"none":"";$("#lbVid").style.display=v?"block":"none";
+  if(v){$("#lbVid").src="/img/"+encodeURI(r.file);$("#lbVid").play().catch(()=>{})}else{$("#lbVid").pause();$("#lbImg").src="/img/"+encodeURI(r.file)}
+  $("#lbVar").textContent=r.engine==="video"?"2 more clips":"4 variations";$("#lbTitle").textContent=r.label||r.name||r.file;$("#lbNote").value=r.note||"";
   $$(".rates button").forEach(b=>b.classList.toggle("on",b.dataset.r===r.rating));
-  const sk=!!r.prompt&&(r.engine||"anima")!=="h3"&&!!r.quality&&r.quality!=="final";$("#lbFinalRow").hidden=!sk;
+  const sk=!!r.prompt&&(r.engine||"anima")==="anima"&&!!r.quality&&r.quality!=="final";$("#lbFinalRow").hidden=!sk;
+  if(r.engine==="video"&&P.video&&(r.resolution||"480p")!=="720p"&&P.video.resolutions["720p"]){$("#lbFinalRow").hidden=false;$("#lbFinal").textContent="Make it in 720p";
+    $("#lbFinalHint").textContent=`The same description and seed (${r.seed}) at 720p: sharper, a close but not identical clip. Takes about 2.5 times as long.`}
   if(sk){const same=r.quality==="draft";$("#lbFinal").textContent=same?"Make it in Final quality":"Try it in Final quality";
     $("#lbFinalHint").textContent=same?`The same picture (seed ${r.seed}) with finer detail. Takes about twice as long as Preview.`:"A sketch does not carry over exactly: Final with the same seed is a new picture of the same idea. To keep a look you like, make Previews, then Final from the one you pick."}
-  $("#lbInfo").textContent=r.prompt?`style: ${r.style}\nbody: ${r.body}${r.strength?" ("+r.strength+")":""}\nseed: ${r.seed}  quality: ${r.quality}  ${r.secs||"?"} s\n\n${r.prompt}`:r.file;$("#lb").classList.add("on")}
-function closeLb(){$("#lb").classList.remove("on")}
+  $("#lbInfo").textContent=r.engine==="video"?`video ${r.size||""} ${r.seconds||"?"} s  seed: ${r.seed}  ${r.secs||"?"} s to make${(r.images||[]).length?"\nfirst frame: "+r.images[0].replace(/^out:/,""):""}\n\n${r.prompt}`:r.engine==="h3"?`H3  seed: ${r.seed}  ${r.secs||"?"} s\n\n${r.prompt}`:r.prompt?`style: ${r.style}\nbody: ${r.body}${r.strength?" ("+r.strength+")":""}\nseed: ${r.seed}  quality: ${r.quality}  ${r.secs||"?"} s\n\n${r.prompt}`:r.file;$("#lb").classList.add("on")}
+function closeLb(){$("#lb").classList.remove("on");$("#lbVid").pause()}
 $("#lb").onclick=e=>{if(e.target.id==="lb")closeLb()};document.onkeydown=e=>{if(e.key==="Escape")closeLb()};
 $$(".rates button").forEach(b=>b.onclick=async()=>{const r=b.dataset.r===lbRec.rating?null:b.dataset.r;await api("/api/rate",{file:lbRec.file,rating:r||"none",note:""});lbRec.rating=r;
   $$(".rates button").forEach(x=>x.classList.toggle("on",x.dataset.r===r));hist=await api("/api/history");showRecent()});
 $("#lbSave").onclick=async()=>{await api("/api/rate",{file:lbRec.file,rating:null,note:$("#lbNote").value});$("#lbSave").textContent="Saved ✓";setTimeout(()=>$("#lbSave").textContent="Save note",1500)};
-$("#lbReuse").onclick=()=>{if(!lbRec.prompt)return;fill({style:lbRec.style,character:lbRec.character,scene:lbRec.scene,body:lbRec.body,strength:lbRec.strength,framing:lbRec.framing,extra_neg:lbRec.extra_neg,seed:lbRec.seed});closeLb();$$("nav button")[0].click()};
-$("#lbVar").onclick=async()=>{if(!lbRec.prompt)return;await api("/api/generate",{style:lbRec.style,character:lbRec.character,scene:lbRec.scene,body:lbRec.body,strength:lbRec.strength,framing:lbRec.framing,quality:lbRec.quality,extra_neg:lbRec.extra_neg,count:4});closeLb();$$("nav button")[0].click()};
-$("#lbFinal").onclick=async()=>{const r=lbRec;try{await api("/api/generate",{style:r.style,character:r.character,scene:r.scene,body:r.body,strength:r.strength,framing:r.framing,quality:"final",extra_neg:r.extra_neg,body_tags:r.body_tags,end:r.end,seed:r.seed,count:1})}catch(e){alert(e.message);return}
+const vidJob=r=>({prompt:r.prompt,images:r.images||[],framing:r.framing,seconds:r.seconds,resolution:r.resolution});
+$("#lbReuse").onclick=()=>{if(!lbRec.prompt)return;const go=p=>{closeLb();$$("nav button").find(b=>b.dataset.p===p).click()};
+  if(lbRec.engine==="video"){$("#vprompt").value=lbRec.prompt;SLOTS.video.list=(lbRec.images||[]).map(f=>f.replace(/^out:/,""));showSlot("video");$("#vseed").value=lbRec.seed;
+    if(lbRec.framing)$("#vframing").value=lbRec.framing;if(lbRec.seconds)$("#vsecs").value=String(Math.round(lbRec.seconds));if(lbRec.resolution)$("#vres").value=lbRec.resolution;veta();return go("video")}
+  if(lbRec.engine==="h3"){$("#h3prompt").value=lbRec.prompt;SLOTS.h3.list=(lbRec.images||[]).map(f=>f.replace(/^out:/,""));showSlot("h3");$("#h3seed").value=lbRec.seed;return go("h3")}fill({style:lbRec.style,character:lbRec.character,scene:lbRec.scene,body:lbRec.body,strength:lbRec.strength,framing:lbRec.framing,extra_neg:lbRec.extra_neg,seed:lbRec.seed});closeLb();$$("nav button")[0].click()};
+$("#lbVar").onclick=async()=>{if(!lbRec.prompt)return;
+  if(lbRec.engine==="video"){try{await makeVideo(Object.assign(vidJob(lbRec),{count:2}))}catch(e){alert(e.message)}closeLb();return}
+  if(lbRec.engine==="h3"){await api("/api/generate",{engine:"h3",prompt:lbRec.prompt,images:lbRec.images||[],framing:lbRec.framing,count:4});closeLb();showWorking();return}await api("/api/generate",{style:lbRec.style,character:lbRec.character,scene:lbRec.scene,body:lbRec.body,strength:lbRec.strength,framing:lbRec.framing,quality:lbRec.quality,extra_neg:lbRec.extra_neg,count:4});closeLb();$$("nav button")[0].click()};
+$("#lbFinal").onclick=async()=>{const r=lbRec;
+  if(r.engine==="video"){try{await makeVideo(Object.assign(vidJob(r),{resolution:"720p",seed:r.seed,count:1}))}catch(e){alert(e.message)}closeLb();return}
+  try{await api("/api/generate",{style:r.style,character:r.character,scene:r.scene,body:r.body,strength:r.strength,framing:r.framing,quality:"final",extra_neg:r.extra_neg,body_tags:r.body_tags,end:r.end,seed:r.seed,count:1})}catch(e){alert(e.message);return}
   closeLb();$$("nav button")[0].click();showWorking()};
-$("#lbH3").onclick=()=>{addH3(lbRec.file);
+$("#lbMakeVid").onclick=()=>{addTo("video",lbRec.file);closeLb();$$("nav button").find(b=>b.dataset.p==="video").click()};
+$("#lbH3").onclick=()=>{addTo("h3",lbRec.file);
   closeLb();$$("nav button").find(b=>b.dataset.p==="h3").click()};
 $("#lbOpen").onclick=()=>window.open("/img/"+encodeURI(lbRec.file),"_blank");
 init().catch(e=>{document.body.insertAdjacentHTML("afterbegin",`<p style="color:red;padding:10px">Could not load the Studio: ${esc(e.message)}</p>`)});

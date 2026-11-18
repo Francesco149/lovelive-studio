@@ -53,6 +53,7 @@ p.lead{font-size:19px;color:var(--mute);max-width:60ch}
 a{color:var(--sea)}
 code,kbd{font-family:var(--f-mono);font-size:.88em;background:var(--sea-soft);padding:.1em .35em;border-radius:5px}
 .strip{display:grid;gap:12px;margin:18px 0}
+.strip.c1{grid-template-columns:minmax(0,1fr)}
 .strip.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .strip.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .strip.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -483,6 +484,23 @@ hair and body. Change only this: ..."</i> (the Studio fills it in for you).</p>
 </div>
 <p class="hint" style="color:var(--mute)">Tip: describe soft bodies as "chubby all over"; "a round belly" can come out looking pregnant (candidate 3).</p>
 
+<h3>Short videos with sound</h3>
+<p>With the optional video download, the Studio's <b>Video (H3)</b> tab makes clips of 3 to 8 seconds, with sound, from a
+description. The best way: <b>start from one of your Love Live pictures</b> (open it and press <b>Make a video from this
+picture</b>, or paste, drop or pick it in the tab). The clip keeps her exactly as drawn and moves her the way you describe.</p>
+<div class="strip c1"><figure><img src="img/video_i2v.jpg" alt="Five frames of a clip made from the seaside picture"><figcaption>From the seaside
+picture: "she takes a sip from her paper cup, smiles and waves at the camera while the sea breeze moves her hair. Waves and
+seagulls in the background." 5 seconds at 480p, about 2.5 minutes.</figcaption></figure></div>
+<p>Without a picture it draws the whole clip from the words, in a generic anime look (not the Love Live face), and it may
+cut between camera angles by itself:</p>
+<div class="strip c1"><figure><img src="img/video_t2v.jpg" alt="Five frames of an idol clip made from words only"><figcaption>"An anime girl with
+long orange hair in a side ponytail and a frilly idol dress sings and dances on a concert stage ... She spins once and waves
+at the crowd. Upbeat idol pop music and a cheering crowd."</figcaption></figure></div>
+<p>Describe what she <b>does</b>, how the <b>camera</b> moves ("the camera slowly pushes in on her face") and what we
+<b>hear</b> (music, sounds; spoken words in quotes with the language). One or two actions fit in 5 seconds. Clips start at
+<b>480p</b>, quick to check; when you like one, open it and press <b>Make it in 720p</b> for a sharper version with the
+same description and seed (close to it, not identical; about 2.5 times as long). Turn the sound on when you play it.</p>
+
 <h2 id="studio"><span class="n">10</span>The Studio and ComfyUI</h2>
 <h3>The Studio (your everyday page)</h3>
 <p>Double-click <b>Love Live Studio</b> on your desktop. It opens in your browser:</p>
@@ -491,6 +509,7 @@ hair and body. Change only this: ..."</i> (the Studio fills it in for you).</p>
   <li><b>Create</b>: pick a ready-made prompt, style, character, scene, body drawing, then <i>Make pictures</i>. "What the AI reads" shows the full prompt.</li>
   <li>Click any picture: rate it (&#10084;&#65039; &#128077; &#128528; &#128078;), write what you think, <i>Use these settings</i> again, or make <i>4 variations</i>.</li>
   <li><b>Describe (H3)</b> (if H3-Image is installed): describe a picture in sentences, or edit one you made (section 9).</li>
+  <li><b>Video (H3)</b> (if the video model is installed): a short clip with sound from a description, best started from one of your pictures (section 9).</li>
   <li><b>My pictures</b>: everything you've made, searchable, with a "loved and liked only" filter.</li>
   <li><b>Rounds to judge</b>: test pictures Claude made for you to compare (section 10).</li>
   <li>Your pictures are saved in the Studio's data folder under <code>outputs</code>.</li>
@@ -526,6 +545,7 @@ if it's reusable, adds it to your menus. Each round makes the next pictures bett
   <tbody id="speedrows">
   <tr><td>RTX 5060 8 GB (tested)</td><td class="num">56 s</td><td class="num">34 s</td><td class="num">18 s</td><td class="num">9 s</td></tr>
   <tr><td>RTX 5060, <b>H3-Image</b></td><td class="num" colspan="4">17-25 s described, about 50 s for an edit or right after switching from the Love Live model</td></tr>
+  <tr><td>RTX 5060, <b>H3 video</b></td><td class="num" colspan="4">5 s clip at 480p: about 2.5 min; 8 s: about 4 min; 5 s at 720p: about 6 min</td></tr>
   <tr><td>GTX 1070 8 GB (estimate)</td><td class="num">4-5 min</td><td class="num">~2.5 min</td><td class="num">~1.5 min</td><td class="num">~45 s</td></tr>
   </tbody>
 </table></div>
@@ -533,7 +553,7 @@ if it's reusable, adds it to your menus. Each round makes the next pictures bett
 the keeper with Final. The Studio starts on Preview: when you like one, click it and press <b>Make it in Final quality</b>
 to get the same picture with finer detail. <b>Small sketch</b> is a different picture each time, but quick. <b>Turbo sketch</b> (an optional
 download) is the fastest and loses some of the Love Live look: good for trying poses and scenes, not for judging the style.
-The first picture after starting takes about a minute longer while the models load. H3-Image is not offered on GTX 10 cards: it is too big for them to run at a usable speed. Close games and video while it
+The first picture after starting takes about a minute longer while the models load. H3-Image and H3 video are not offered on GTX 10 cards: it is too big for them to run at a usable speed. Close games and video while it
 works: they share the graphics card. The Studio shows "about N seconds per picture" once it has timed a few of yours.</p>
 
 <h2 id="note"><span class="n">13</span>A note on surprises</h2>

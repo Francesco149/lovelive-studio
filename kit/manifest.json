@@ -98,12 +98,15 @@
     {
       "file": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
       "dir": "text_encoders",
-      "role": "H3-Image text encoder (Qwen3-VL 32B, nvfp4). Optional set 'h3' (about 29 GB)",
+      "role": "H3 text encoder (Qwen3-VL 32B, nvfp4), for H3-Image and H3 video. Optional sets 'h3' and 'video'",
       "url": "https://huggingface.co/Comfy-Org/MiniMax-H3-Image/resolve/main/text_encoders/qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
       "size": 15687142551,
       "sha256": "35a88d51044231fe332301d7a62aa81e3f2cba62febeb446e2c1e3e0ef76f2c6",
       "required": false,
-      "key": "h3"
+      "key": [
+        "h3",
+        "video"
+      ]
     },
     {
       "file": "minimax_h3_image_vae_fp16.safetensors",
@@ -114,6 +117,46 @@
       "sha256": "d80e9c2e5cfc9844869961ff5a58c9a9e52182df6bfb30b26018dd7f348721af",
       "required": false,
       "key": "h3"
+    },
+    {
+      "file": "minimax_h3_fl2va_pruned_w4a8_mixed.safetensors",
+      "dir": "diffusion_models",
+      "role": "H3 video model (FL2VA, w4a8): clips with sound from sentences or a first frame. Optional set 'video' (about 32 GB with the text encoder)",
+      "url": "https://huggingface.co/Kijai/MiniMax-H3-experimental/resolve/main/minimax_h3_fl2va_pruned_w4a8_mixed.safetensors",
+      "size": 12540858008,
+      "sha256": "01aa7b92c007c599890461c325f9b7e3c96fb06c36f242f95b62f7f20e538dec",
+      "required": false,
+      "key": "video"
+    },
+    {
+      "file": "pika_h3_flex_fl2va_v1_avg_rank_56_bf16.safetensors",
+      "dir": "loras",
+      "role": "Pika H3 Flex 6-step LoRA for the H3 video model. Optional set 'video'",
+      "url": "https://huggingface.co/Kijai/MiniMax-H3_comfy/resolve/main/loras/Pika/pika_h3_flex_fl2va_v1_avg_rank_56_bf16.safetensors",
+      "size": 559266144,
+      "sha256": "fdaec425c8795efad58c4dff52d5fcc061d6b19c4c7a1e08acb4cd090e73c540",
+      "required": false,
+      "key": "video"
+    },
+    {
+      "file": "minimax_h3_video_vae_int8_convrot.safetensors",
+      "dir": "vae",
+      "role": "H3 video VAE (int8). Optional set 'video'",
+      "url": "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_video_vae_int8_convrot.safetensors",
+      "size": 2811065184,
+      "sha256": "52a2c8c73583c86e4f41cdcce3a6ad0ea562987bc0bf3d60a0cef5f5c8e60c0e",
+      "required": false,
+      "key": "video"
+    },
+    {
+      "file": "minimax_h3_audio_vae_fp32.safetensors",
+      "dir": "vae",
+      "role": "H3 audio VAE (the clips' sound). Optional set 'video'",
+      "url": "https://huggingface.co/Comfy-Org/MiniMax-H3/resolve/main/vae/minimax_h3_audio_vae_fp32.safetensors",
+      "size": 605254808,
+      "sha256": "8e505d95dd1561d47abd43d4238fd40d9bb1ae9e147ed0a4cba778d76ae4db48",
+      "required": false,
+      "key": "video"
     }
   ],
   "tools": {
