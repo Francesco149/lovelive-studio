@@ -2,7 +2,7 @@
 
   kit\\py.cmd kit\\studio\\gen.py status
   kit\\py.cmd kit\\studio\\gen.py one --character "1girl, solo, ..." --body curvy --scene "..." [--style ll_tv] [--seed 5]
-                                   [--quality final|draft] [--framing portrait|landscape|square] [--strength 0.6] [--round r01] [--name x]
+                                   [--quality draft|final] (default draft = Preview) [--framing portrait|landscape|square] [--strength 0.6] [--round r01] [--name x]
   kit\\py.cmd kit\\studio\\gen.py round r01 jobs.jsonl --title "What we test" [--question "Which face do you like?"]
         jobs.jsonl: one job per line, e.g. {"label": "A: tags only", "name": "a_s1", "character": "...", "body": "none", "seed": 1}
         -> images in <data>\\outputs\\r01\\, a contact sheet r01\\_sheet.jpg, my\\rounds\\r01.json (shown in the Studio's Rounds tab)
@@ -17,6 +17,8 @@
         [--pose "..."] [--shot full|cowboy] [--seeds 1,2,3] [--pick N]: H3 draws the body filling the frame, then the pick is turned
         grey, saved as my/controls/<name>.png and added to the body menu (my/presets.json). Without --pick it only makes the
         candidates (round "body-<name>") so the user can choose; run again with --pick N.
+  kit\\py.cmd kit\\studio\\gen.py final r03/a_s1_00001_.png [more files] [--round keep]
+        remake pictures in Final quality: same seed and settings (Preview is the default; offer this for the ones the user likes)
   kit\\py.cmd kit\\studio\\gen.py sheet r01           (re)make the contact sheet of a round
   kit\\py.cmd kit\\studio\\gen.py feedback [r01]      the friend's ratings and notes (all, or one round)
   kit\\py.cmd kit\\studio\\gen.py selftest            one small image; checks it is not black / blank (setup and after a reset)
@@ -221,6 +223,26 @@ def cmd_make_body(a):
     print("body drawing saved:", dst, "| in the Studio's body menu as", mine["bodies"][name]["label"], "(reload the page)")
 
 
+def cmd_final(a):
+    s = core.settings()
+    need_engine(s)
+    hist = {r["file"]: r for r in core.read_jsonl(os.path.join(core.MY, "history.jsonl")) if r.get("file")}
+    for f in a.files:
+        f = f.replace("\\", "/")
+        f = f[4:] if f.startswith("out:") else f
+        r = hist.get(f) or next((v for k, v in hist.items() if k.endswith("/" + f) or k.endswith(f)), None)
+        if not r:
+            print("not in history:", f)
+            continue
+        if r.get("engine") == "h3":
+            print("H3 pictures have one quality already:", f)
+            continue
+        j = {k: r[k] for k in ("style", "character", "body", "body_tags", "scene", "extra_neg", "framing", "seed", "strength") if r.get(k) is not None}
+        j.update(quality="final", round=a.round or r.get("round") or "studio", name=(r.get("name") or "pic") + "_final")
+        out = core.run(j, s)
+        print("%s -> %s (%.0f s)" % (r["file"], out["file"], out["secs"]), flush=True)
+
+
 def cmd_sheet(a):
     meta = core.load_json(os.path.join(core.MY, "rounds", a.round_id + ".json"), None)
     items = meta["items"] if meta else [{"file": r["file"], "label": r["name"]} for r in core.read_jsonl(os.path.join(core.MY, "history.jsonl")) if r.get("round") == a.round_id]
@@ -300,13 +322,16 @@ def main():
     mb.add_argument("--label")
     mb.add_argument("--head-cut", dest="head_cut", type=float, help="fraction of the height painted out from the top (default 0.16 full, 0.32 cowboy; ~0.42 for a chibi; 0 keeps the head). Check the saved drawing: no face may be left, raised arms should stay")
     mb.add_argument("--open", action="store_true")
+    fi = sp.add_parser("final")
+    fi.add_argument("files", nargs="+")
+    fi.add_argument("--round", help="put the Final pictures in this round (default: the same round as the Preview)")
     sh = sp.add_parser("sheet")
     sh.add_argument("round_id")
     fb = sp.add_parser("feedback")
     fb.add_argument("round_id", nargs="?")
     sp.add_parser("selftest")
     a = ap.parse_args()
-    {"status": cmd_status, "one": cmd_one, "round": cmd_round, "grid": cmd_grid, "make-body": cmd_make_body, "sheet": cmd_sheet, "feedback": cmd_feedback, "selftest": cmd_selftest}[a.cmd](a)
+    {"status": cmd_status, "one": cmd_one, "round": cmd_round, "grid": cmd_grid, "make-body": cmd_make_body, "final": cmd_final, "sheet": cmd_sheet, "feedback": cmd_feedback, "selftest": cmd_selftest}[a.cmd](a)
 
 
 if __name__ == "__main__":

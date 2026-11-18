@@ -9,7 +9,7 @@ A job is a dict:
   body       body preset id ("none" = no body control) or "custom:<path to a picture>"
   scene      where / what: "seaside railing, ocean, smile, holding paper cup"
   extra_neg  extra negative tags (optional)
-  quality    "final" | "draft"            framing  "portrait" | "landscape" | "square"
+  quality    "draft" (Preview, default) | "final"            framing  "portrait" | "landscape" | "square"
   seed       int (random when missing)     strength body control strength (default from the body preset)
   round      folder name for the output (default "studio")   name  file name stem (default: time stamp)
 """
@@ -266,7 +266,7 @@ def wait(prompt_id, s=None, timeout=3600):
 def new_job(job):
     j = dict(job)
     j.setdefault("style", presets()["default_style"])
-    j.setdefault("quality", "final")
+    j.setdefault("quality", "draft")  # Preview: detailed enough to judge; remake keepers with gen.py final
     j.setdefault("framing", "portrait")
     j.setdefault("body", "none")
     if j.get("seed") in (None, "", -1, "-1"):

@@ -148,10 +148,11 @@ Always pass `-s`. `kit\py.cmd` wraps it for cmd/PowerShell. From Git Bash, call 
 
 ```
 kit\py.cmd kit\studio\gen.py status
-kit\py.cmd kit\studio\gen.py one --character "1girl, solo, ..." --scene "..." --body curvy_idol [--style ll_card] [--seed 7] [--quality draft]
+kit\py.cmd kit\studio\gen.py one --character "1girl, solo, ..." --scene "..." --body curvy_idol [--style ll_card] [--seed 7] [--quality final]
 kit\py.cmd kit\studio\gen.py grid r03 --example "Idol on stage" --vary body=curvy_idol,petite_idol --seeds 1,2 --open
 kit\py.cmd kit\studio\gen.py round r03 my\rounds\r03.jobs.jsonl --title "..." --question "..."
 kit\py.cmd kit\studio\gen.py one --engine h3 --prompt "..." [--image out:r03/x_00001_.png]
+kit\py.cmd kit\studio\gen.py final r03/x_s2_00001_.png     (the same picture in Final quality)
 kit\py.cmd kit\studio\gen.py make-body soft_short --describe "..." --tags "..."   (then --pick N)
 kit\py.cmd kit\studio\gen.py feedback r03
 kit\py.cmd kit\studio\gen.py selftest
@@ -162,13 +163,16 @@ powershell -ExecutionPolicy Bypass -File kit/start.ps1 [-NoBrowser] [-ComfyUI] [
 
 Most requests are not experiments, just "make me a few X". Do this without asking first:
 1. Turn the wish into a job: start from the closest ready-made example (`--example`) or `my/RECIPES.md`, write the
-   character and scene tags yourself, pick the body drawing. Default style `ll_signature`, quality Final.
+   character and scene tags yourself, pick the body drawing. Default style `ll_signature`, quality **Preview** (the default: detailed enough
+   to judge and to keep, about 40% faster than Final).
 2. `gen.py grid <id> ... --seeds 1,2,3,4 --open` (or `--vary` one thing if they were unsure, e.g. two bodies).
    Tell them roughly how long it takes (section 7) and that the pictures appear in the Studio's *Rounds* tab.
 3. Look at every picture yourself (open the PNGs) before you talk about them, against the **quality bar** below.
    Re-run the ones that fail with new seeds instead of showing them.
 4. Show them, say which you think is best and why in one line, ask what to change. When they like one, offer
-   "4 variations" or write it into `my/RECIPES.md`.
+   "4 variations", write it into `my/RECIPES.md`, or, if they want it as good as it gets (print, wallpaper, close-up
+   detail), remake it in Final: `gen.py final <file>` (same seed and settings, same size, finer detail; it lands in the
+   same round folder and in *My pictures*, not on the round page).
 
 ### Quality bar
 
@@ -268,8 +272,11 @@ What the qualities are for: **Preview** is nearly the same picture as Final with
 idea, then Final with that seed). **Small sketch** looks as good but is a different picture. **Turbo** is fastest but
 its Love Live look is weaker (more generic faces, stray text, extra props): use it to explore prompts and poses, never
 to judge style. On a slow card: Turbo or Small to explore, Preview to pick, Final for keepers.
-The Studio starts on **Preview**; the picture viewer's *Make it in Final quality* button remakes a Preview in Final
-with the same seed and settings (same size, finer detail). The "Working on" list shows on the Create and H3 tabs.
+The Studio and `gen.py` both default to **Preview**; the picture viewer's *Make it in Final quality* button and
+`gen.py final <file>` remake a Preview in Final with the same seed and settings (same size, finer detail). The
+"Working on" list shows on the Create and H3 tabs. The H3 tab takes pictures from outside the Studio too (paste, drop,
+or choose a file; saved in `<data>\outputs\uploads\`). After a `git pull`, double-clicking *Love Live Studio* restarts the
+Studio page server when its code changed (not while it is drawing); the open page then offers a reload.
 
 16 GB of RAM is enough: the models take about 6 GB, and nothing else heavy needs to run. Keep the data folder on an SSD.
 

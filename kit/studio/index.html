@@ -58,6 +58,9 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
 .round{margin-bottom:22px}
 .round h3{margin:0 0 4px}
 .empty{color:var(--mute);padding:30px;text-align:center}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:8px}
+.drop.over{border-color:var(--accent);background:var(--bg)}
+#engine.upd{color:var(--accent);font-weight:600;cursor:pointer}
 .pill{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:1px 9px;font-size:12px;color:var(--mute);margin-right:4px}
 </style>
 </head>
@@ -124,8 +127,13 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
       girl on the Create tab first, then edit her here.</p>
     <label class="h">Describe the picture</label>
     <textarea id="h3prompt" style="min-height:140px" placeholder="A cheerful anime idol girl with long orange hair in a side ponytail, singing on a concert stage..."></textarea>
-    <label class="h">Pictures to edit <small>(open a picture and press "Edit with H3"; call them Picture 1 / Picture 2)</small></label>
-    <div id="h3imgs" class="row" style="flex-wrap:wrap"></div>
+    <label class="h">Pictures to edit <small>(up to 2; in the description call them Picture 1 / Picture 2)</small></label>
+    <div id="h3drop" class="drop">
+      <div id="h3imgs" class="row" style="flex-wrap:wrap"></div>
+      <div class="hint" style="margin-top:6px"><b>Paste</b> a picture here (Ctrl+V), <b>drop</b> one from a folder, <button class="s" id="h3pick" style="padding:2px 8px">choose a file</button>,
+        or open one of your pictures and press <b>Edit with H3</b>.</div>
+      <input type="file" id="h3file" accept="image/png,image/jpeg,image/webp" multiple hidden>
+    </div>
     <div class="row">
       <div><label class="h">Shape</label><select id="h3framing"></select></div>
       <div><label class="h">How many</label><input type="number" id="h3count" min="1" max="6" value="2"></div>
@@ -220,8 +228,12 @@ function eta(){if(!STATE)return;const t=STATE.typical[$("#quality").value||"fina
   $("#eta").innerHTML=esc(s?`About ${Math.round(s)} seconds per picture on this PC.`:"The first picture after starting takes longer (the models load).")+
     ($("#quality").value==="draft"?"<br>Preview is the quick version. <b>Like one?</b> Click it and press <b>Make it in Final quality</b>: the same picture with finer detail.":"")}
 $("#quality").onchange=eta;
-async function engine(){try{STATE=await api("/api/state");const e=$("#engine");e.className=STATE.comfy_up?"":"down";
-  e.textContent=STATE.comfy_up?`engine ready · ${STATE.machine.gpu||""}`:"engine not running: close this tab and start the Studio again";}catch(e){$("#engine").className="down";$("#engine").textContent="Studio not responding"}}
+let pageStamp=null;
+async function engine(){try{STATE=await api("/api/state");const e=$("#engine");e.className=STATE.comfy_up?"":"down";e.onclick=null;
+  e.textContent=STATE.comfy_up?`engine ready · ${STATE.machine.gpu||""}`:"engine not running: close this tab and start the Studio again";
+  if(pageStamp===null)pageStamp=STATE.code_stamp;
+  if(STATE.code_stamp!==pageStamp){e.className="upd";e.textContent="The Studio was updated: click here to reload the page";e.onclick=()=>location.reload()}
+  else if(STATE.code_now>STATE.code_stamp){e.className="upd";e.textContent="The Studio was updated: double-click Love Live Studio on the desktop to load it"}}catch(e){$("#engine").className="down";$("#engine").textContent="Studio not responding"}}
 async function generate(){$("#go").disabled=true;try{await api("/api/generate",Object.assign(job(),{count:parseInt($("#count").value)||1}));showWorking()}
   catch(e){alert(e.message)}setTimeout(()=>$("#go").disabled=false,800)}
 async function pollJobs(){let js;try{js=await api("/api/jobs")}catch(e){return}
@@ -240,6 +252,17 @@ function showRecent(){const l=hist.filter(r=>r.round!=="_selftest").slice(0,12);
 let h3imgs=[];
 function showH3imgs(){$("#h3imgs").innerHTML=h3imgs.length?h3imgs.map((f,i)=>`<div class="thumb" style="flex:0 0 90px"><img src="/img/${encodeURI(f)}"><span class="tag">Picture ${i+1}</span><span class="rate" data-x="${i}" style="cursor:pointer">\u2715</span></div>`).join(""):'<span class="hint">none: a new picture from the description</span>';
   $$("#h3imgs .rate").forEach(x=>x.onclick=e=>{e.stopPropagation();h3imgs.splice(+x.dataset.x,1);showH3imgs()})}
+function addH3(f){if(h3imgs.length>=2)h3imgs.shift();h3imgs.push(f);showH3imgs();
+  if(!$("#h3prompt").value.trim())$("#h3prompt").value="Keep the girl from Picture 1 exactly as she is drawn: the same anime style, line art, colours, face, hair and body. Change only this: "}
+async function uploadH3(files){for(const f of files){if(!f.type.startsWith("image/"))continue;
+  const data=await new Promise((ok,no)=>{const fr=new FileReader();fr.onload=()=>ok(fr.result);fr.onerror=no;fr.readAsDataURL(f)});
+  try{const r=await api("/api/upload",{data});addH3(r.file)}catch(e){alert(e.message)}}}
+document.addEventListener("paste",e=>{if(!$("#h3").classList.contains("on"))return;
+  const fs=[...(e.clipboardData||{}).items||[]].filter(i=>i.kind==="file"&&i.type.startsWith("image/")).map(i=>i.getAsFile());
+  if(fs.length){e.preventDefault();uploadH3(fs)}});
+(()=>{const d=$("#h3drop");d.ondragover=e=>{e.preventDefault();d.classList.add("over")};d.ondragleave=()=>d.classList.remove("over");
+  d.ondrop=e=>{e.preventDefault();d.classList.remove("over");uploadH3([...e.dataTransfer.files])};
+  $("#h3pick").onclick=()=>$("#h3file").click();$("#h3file").onchange=()=>{uploadH3([...$("#h3file").files]);$("#h3file").value=""}})();
 function h3eta(){const t=STATE&&STATE.typical.h3;$("#h3eta").textContent=t&&t.none?`About ${Math.round(t.none)} seconds per picture on this PC.`:"H3 is big: the first picture loads about 29 GB of model files, so it takes a few minutes."}
 $("#h3go").onclick=async()=>{const p=$("#h3prompt").value.trim();if(!p){alert("Describe the picture first.");return}$("#h3go").disabled=true;
   try{await api("/api/generate",{engine:"h3",prompt:p,images:h3imgs.map(f=>"out:"+f),framing:$("#h3framing").value,seed:$("#h3seed").value.trim()||null,count:parseInt($("#h3count").value)||1});showWorking()}
@@ -271,8 +294,7 @@ $("#lbReuse").onclick=()=>{if(!lbRec.prompt)return;fill({style:lbRec.style,chara
 $("#lbVar").onclick=async()=>{if(!lbRec.prompt)return;await api("/api/generate",{style:lbRec.style,character:lbRec.character,scene:lbRec.scene,body:lbRec.body,strength:lbRec.strength,framing:lbRec.framing,quality:lbRec.quality,extra_neg:lbRec.extra_neg,count:4});closeLb();$$("nav button")[0].click()};
 $("#lbFinal").onclick=async()=>{const r=lbRec;try{await api("/api/generate",{style:r.style,character:r.character,scene:r.scene,body:r.body,strength:r.strength,framing:r.framing,quality:"final",extra_neg:r.extra_neg,body_tags:r.body_tags,end:r.end,seed:r.seed,count:1})}catch(e){alert(e.message);return}
   closeLb();$$("nav button")[0].click();showWorking()};
-$("#lbH3").onclick=()=>{if(h3imgs.length>=2)h3imgs.shift();h3imgs.push(lbRec.file);showH3imgs();
-  if(!$("#h3prompt").value.trim())$("#h3prompt").value="Keep the girl from Picture 1 exactly as she is drawn: the same anime style, line art, colours, face, hair and body. Change only this: ";
+$("#lbH3").onclick=()=>{addH3(lbRec.file);
   closeLb();$$("nav button").find(b=>b.dataset.p==="h3").click()};
 $("#lbOpen").onclick=()=>window.open("/img/"+encodeURI(lbRec.file),"_blank");
 init().catch(e=>{document.body.insertAdjacentHTML("afterbegin",`<p style="color:red;padding:10px">Could not load the Studio: ${esc(e.message)}</p>`)});

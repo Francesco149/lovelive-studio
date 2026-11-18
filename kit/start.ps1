@@ -64,6 +64,25 @@ if (-not (Up "$($S.comfy_url)/system_stats")) {
         Start-Sleep -Seconds 2
     }
 }
+if (-not $NoStudio -and (Up "$($S.studio_url)/api/state")) {
+    # a Studio started before a `git pull` keeps running the old code: restart it (only the page server, the engine
+    # stays loaded) when its code is older than the files, unless it is still drawing pictures
+    try {
+        $st = Invoke-RestMethod -TimeoutSec 5 "$($S.studio_url)/api/state"
+        if ($st.code_now -gt $st.code_stamp -or $null -eq $st.code_stamp) {
+            $busy = @(Invoke-RestMethod -TimeoutSec 5 "$($S.studio_url)/api/jobs" | Where-Object { $_.status -in @("queued", "running") })
+            if ($busy.Count -gt 0) {
+                Write-Host "The Studio was updated; it will load the new version once the $($busy.Count) picture(s) it is drawing are done and it is started again."
+            } else {
+                Write-Host "loading the updated Studio ..."
+                Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" |
+                    Where-Object { $_.ExecutablePath -eq $Py -and $_.CommandLine -like "*server.py*" } |
+                    ForEach-Object { try { Stop-Process -Id $_.ProcessId -Force } catch {} }
+                Start-Sleep -Seconds 1
+            }
+        }
+    } catch {}
+}
 if (-not $NoStudio -and -not (Up "$($S.studio_url)/api/state")) {
     Launch $Py @("-s", (Join-Path $PSScriptRoot "studio\server.py")) $Repo (Join-Path $Logs "studio.log") (Join-Path $Logs "studio.err.log")
     $t0 = Get-Date
