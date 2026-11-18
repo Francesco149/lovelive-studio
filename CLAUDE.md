@@ -268,6 +268,8 @@ What the qualities are for: **Preview** is nearly the same picture as Final with
 idea, then Final with that seed). **Small sketch** looks as good but is a different picture. **Turbo** is fastest but
 its Love Live look is weaker (more generic faces, stray text, extra props): use it to explore prompts and poses, never
 to judge style. On a slow card: Turbo or Small to explore, Preview to pick, Final for keepers.
+The Studio starts on **Preview**; the picture viewer's *Make it in Final quality* button remakes a Preview in Final
+with the same seed and settings (same size, finer detail). The "Working on" list shows on the Create and H3 tabs.
 
 16 GB of RAM is enough: the models take about 6 GB, and nothing else heavy needs to run. Keep the data folder on an SSD.
 
