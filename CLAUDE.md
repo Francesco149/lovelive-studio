@@ -49,7 +49,7 @@ exactly what they will see and what to press.
    On a newer card (build `modern`) with an SSD and 40+ GB to spare, also offer **H3-Image** (`-Optional h3`, 29 GB):
    plain-English pictures, edits of their pictures, and custom body drawings from a description. Not on a GTX 10 card:
    its 20B model streams from disk and the card has no fast 4-bit maths, so a picture would take far too long.
-   On the same kind of PC, also offer **H3 video** (`-Optional video`, 32 GB alone; `-Optional h3,video` together is 48 GB
+   On the same kind of PC, also offer **H3 video** (`-Optional video`, 32 GB alone; `-Optional h3,video` together is 46 GB
    because they share the 16 GB text encoder): 3-8 second clips with sound from a description, best started from one of
    their Love Live pictures. Same GTX 10 rule.
    Exit codes: 11 = not enough space, 13 = a download or unpack failed (run again; if it fails twice, check the

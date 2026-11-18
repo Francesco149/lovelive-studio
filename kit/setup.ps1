@@ -3,7 +3,7 @@
 #   powershell -ExecutionPolicy Bypass -File kit\setup.ps1 -Check                  # report only (GPU, driver, RAM, drives)
 #   powershell -ExecutionPolicy Bypass -File kit\setup.ps1 -DataDir "D:\LoveLiveStudio"
 #   ... -Optional turbo,base,h3,video  also download optional models (kit\manifest.json "key"): turbo 4 GB, base 4 GB,
-#       h3 29 GB, video 32 GB (h3 + video together: 48 GB, they share the 16 GB text encoder)
+#       h3 29 GB, video 32 GB (h3 + video together: 46 GB, they share the 16 GB text encoder)
 #   ... -Build pascal|modern     override the automatic engine choice (normally never needed)
 #
 # Everything big lives in -DataDir: downloads\, engine\ (ComfyUI portable), models\, outputs\, inputs\, logs\.
