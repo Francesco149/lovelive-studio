@@ -7,11 +7,13 @@ Endpoints (JSON):
   GET  /api/jobs        jobs started from this page (queued / running / done / error)
   GET  /api/history     every image (newest first) with its latest rating/note
   POST /api/rate        {file, rating, note}
+  POST /api/cancel      {id?}  stop one job (queued or drawing), or everything without an id; a drawing job is
+                        interrupted, and if the engine has not stopped after FORCE_AFTER s it is restarted (immediate)
   POST /api/upload      {data: "data:image/...;base64,..."} a pasted / dropped picture -> outputs/uploads/, for H3 edits
   GET  /api/rounds      rounds the agent made (folders + my/rounds/*.json)
   GET  /img/<path>      an output image;   /control/<file>  a body control picture;   /guide/...  the guide
 """
-import base64, json, mimetypes, os, queue, sys, threading, time, traceback, urllib.parse
+import base64, json, mimetypes, os, queue, subprocess, sys, threading, time, traceback, urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -36,25 +38,81 @@ LOCK = threading.Lock()
 Q = queue.Queue()   # one image at a time, in the order they were asked for
 
 
+FORCE_AFTER = 4     # seconds an interrupt may take before the engine is restarted (a video step takes ~20 s)
+ENGINE_RESTARTING = threading.Event()
+
+
 def worker():
     while True:
         entry = Q.get()
+        if entry["status"] == "cancelled":
+            continue
         run_one(entry)
 
 
 def run_one(entry):
-    if True:
-        entry["status"] = "running"
-        entry["started_at"] = time.time()
-        try:
-            entry["record"] = core.run(entry["job"])
-            entry["status"] = "done"
-        except Exception as e:  # shown on the page; the agent reads my/studio-errors.log
+    t0 = time.time()
+    while (ENGINE_RESTARTING.is_set() or not core.comfy_up()) and time.time() - t0 < 180:
+        time.sleep(1)  # after a forced stop the engine needs ~30 s to come back
+    if entry["status"] == "cancelled":
+        return
+    entry["status"] = "running"
+    entry["started_at"] = time.time()
+    try:
+        entry["record"] = core.run(entry["job"], on_queued=lambda pid: entry.__setitem__("prompt_id", pid))
+        entry["status"] = "done" if entry["status"] != "cancelling" else "cancelled"
+    except Exception as e:  # shown on the page; the agent reads my/studio-errors.log
+        if entry["status"] == "cancelling":
+            entry["status"] = "cancelled"
+        else:
             entry["status"] = "error"
             entry["error"] = str(e)
             with open(os.path.join(core.MY, "studio-errors.log"), "a", encoding="utf-8") as f:
                 f.write("%s %s\n%s\n" % (time.strftime("%Y-%m-%d %H:%M:%S"), json.dumps(entry["job"]), traceback.format_exc()))
-        entry["finished_at"] = time.time()
+    entry["finished_at"] = time.time()
+
+
+def restart_engine():
+    """Kill and restart ComfyUI (not this page server): the only way to stop a job in the middle of a long step."""
+    if ENGINE_RESTARTING.is_set():
+        return
+    ENGINE_RESTARTING.set()
+    try:
+        subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", os.path.join(core.KIT, "start.ps1"),
+                        "-RestartEngine", "-NoBrowser"], timeout=300, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    except Exception:
+        traceback.print_exc()
+    finally:
+        ENGINE_RESTARTING.clear()
+
+
+def cancel(job_id=None):
+    s = core.settings()
+    with LOCK:
+        hit = [e for e in JOBS if (job_id is None or e["id"] == job_id) and e["status"] in ("queued", "running", "cancelling")]
+    running = None
+    for e in hit:
+        if e["status"] == "queued":
+            e["status"], e["finished_at"] = "cancelled", time.time()
+        else:
+            e["status"] = "cancelling"
+            running = e
+    if running is None:
+        return len(hit)
+
+    def stop(e):
+        try:
+            core.http(s["comfy_url"] + "/interrupt", {})
+        except Exception:
+            pass
+        t0 = time.time()
+        while time.time() - t0 < FORCE_AFTER:
+            if e["status"] != "cancelling":
+                return  # the interrupt worked
+            time.sleep(0.25)
+        restart_engine()
+    threading.Thread(target=stop, args=(running,), daemon=True).start()
+    return len(hit)
 
 
 def safe_join(base, rel):
@@ -142,7 +200,7 @@ class H(BaseHTTPRequestHandler):
                 V = P.get("video", {})
                 video = bool(V) and all(os.path.exists(os.path.join(md, d, V[k])) for d, k in (("diffusion_models", "model"), ("text_encoders", "text_encoder"),
                                                                                               ("vae", "vae"), ("vae", "audio_vae")) + ((("loras", "lora"),) if V.get("lora") else ()))
-                return self.send(200, {"presets": P, "comfy_up": core.comfy_up(s), "h3_ready": h3, "video_ready": video, "code_stamp": STARTED_STAMP, "code_now": code_stamp(),
+                return self.send(200, {"presets": P, "comfy_up": core.comfy_up(s), "h3_ready": h3, "video_ready": video, "engine_restarting": ENGINE_RESTARTING.is_set(), "code_stamp": STARTED_STAMP, "code_now": code_stamp(),
                                        "machine": {k: s.get(k) for k in ("gpu", "vram_gb", "engine_build", "data_dir")},
                                        "typical": {q: {b: typical_secs(q, b) for b in ("none", "body")} for q in list(P["quality"]) + ["h3"] + ["video_" + k for k in V.get("resolutions", {})]}})
             if p == "/api/jobs":
@@ -187,7 +245,7 @@ class H(BaseHTTPRequestHandler):
         try:
             b = self.body()
             if p == "/api/generate":
-                if not core.comfy_up():
+                if not core.comfy_up() and not ENGINE_RESTARTING.is_set():
                     return self.send(503, {"error": "The image engine is not running. Close this page and double-click 'Love Live Studio' again."})
                 n = max(1, min(int(b.pop("count", 1) or 1), 12))
                 seed = b.get("seed")
@@ -201,6 +259,8 @@ class H(BaseHTTPRequestHandler):
                     Q.put(e)
                     made.append(e["id"])
                 return self.send(200, {"queued": made})
+            if p == "/api/cancel":
+                return self.send(200, {"stopped": cancel(b.get("id"))})
             if p == "/api/upload":
                 raw = base64.b64decode(str(b.get("data", "")).split(",", 1)[-1])
                 ext = next((e for m, e in IMG_MAGIC.items() if raw.startswith(m)), None)

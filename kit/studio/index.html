@@ -61,6 +61,10 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
 .empty{color:var(--mute);padding:30px;text-align:center}
 .drop{border:2px dashed var(--line);border-radius:10px;padding:8px}
 .drop.over{border-color:var(--accent);background:var(--bg)}
+#busy{margin-left:auto;border-color:var(--accent);color:var(--accent);font-weight:600}
+#busy+#engine{margin-left:12px}
+.job .stop{margin-left:auto;flex:0 0 auto;padding:2px 9px;font-size:13px}
+.dot.cancelling{background:var(--bad);animation:p .4s infinite alternate}
 #engine.upd{color:var(--accent);font-weight:600;cursor:pointer}
 #pk{position:fixed;inset:0;background:rgba(10,5,15,.7);display:none;z-index:25;padding:24px}
 #pk.on{display:block}
@@ -82,6 +86,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
     <button data-p="rounds">Rounds to judge</button>
     <button onclick="window.open('/guide/','_blank')">Guide</button>
   </nav>
+  <button id="busy" class="s" hidden onclick="stopJob()" title="Stop everything that is being made"></button>
   <span id="engine">checking engine&hellip;</span>
 </header>
 <main>
@@ -119,7 +124,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
     <div class="hint" id="eta" style="margin-top:6px"></div>
   </div>
   <div>
-    <div class="card jobsCard" style="margin-bottom:14px;display:none"><b>Working on</b><div class="jobs"></div></div>
+    <div class="card jobsCard" style="margin-bottom:14px;display:none"><div class="row" style="justify-content:space-between"><b style="flex:0 0 auto">Working on</b><button class="s stopall" style="flex:0 0 auto" onclick="stopJob()">&#9632; Stop all</button></div><div class="jobs"></div></div>
     <div class="card"><b>Just made</b> <span class="hint">click a picture to rate it, keep its settings or make variations</span>
       <div class="thumbs" id="recent" style="margin-top:10px"></div></div>
   </div>
@@ -152,7 +157,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
     <div class="hint" id="h3eta" style="margin-top:6px"></div>
   </div>
   <div>
-    <div class="card jobsCard" style="margin-bottom:14px;display:none"><b>Working on</b><div class="jobs"></div></div>
+    <div class="card jobsCard" style="margin-bottom:14px;display:none"><div class="row" style="justify-content:space-between"><b style="flex:0 0 auto">Working on</b><button class="s stopall" style="flex:0 0 auto" onclick="stopJob()">&#9632; Stop all</button></div><div class="jobs"></div></div>
     <div class="card"><b>Just made</b><div class="thumbs" id="recent2" style="margin-top:10px"></div></div>
   </div>
  </div>
@@ -187,7 +192,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
     <div class="hint" id="veta" style="margin-top:6px"></div>
   </div>
   <div>
-    <div class="card jobsCard" style="margin-bottom:14px;display:none"><b>Working on</b><div class="jobs"></div></div>
+    <div class="card jobsCard" style="margin-bottom:14px;display:none"><div class="row" style="justify-content:space-between"><b style="flex:0 0 auto">Working on</b><button class="s stopall" style="flex:0 0 auto" onclick="stopJob()">&#9632; Stop all</button></div><div class="jobs"></div></div>
     <div class="card"><b>Just made</b><div class="thumbs" id="recent3" style="margin-top:10px"></div></div>
   </div>
  </div>
@@ -293,13 +298,17 @@ async function engine(){try{STATE=await api("/api/state");const e=$("#engine");e
 async function generate(){$("#go").disabled=true;try{await api("/api/generate",Object.assign(job(),{count:parseInt($("#count").value)||1}));showWorking()}
   catch(e){alert(e.message)}setTimeout(()=>$("#go").disabled=false,800)}
 async function pollJobs(){let js;try{js=await api("/api/jobs")}catch(e){return}
-  const act=js.filter(j=>j.status==="queued"||j.status==="running"||(j.status==="error"&&Date.now()/1000-j.finished_at<600));
+  const act=js.filter(j=>["queued","running","cancelling"].includes(j.status)||(j.status==="error"&&Date.now()/1000-j.finished_at<600)||(j.status==="cancelled"&&Date.now()/1000-j.finished_at<8));
+  const live=js.filter(j=>["queued","running","cancelling"].includes(j.status)).length;
+  $("#busy").hidden=!live;$("#busy").innerHTML=`&#9632; Stop (${live} in progress)`;
   showJobs(act);
   let fresh=false;for(const j of js)if(j.status==="done"&&!seenDone.has(j.id)){seenDone.add(j.id);fresh=true}
   if(fresh){hist=await api("/api/history");showRecent()}}
 function jobName(j){if(j.job.engine==="video")return"Video "+(j.job.resolution||"480p")+((j.job.images||[]).length?" from a picture":"");if(j.job.engine==="h3")return(j.job.images||[]).length?"H3 edit":"H3";const q=P&&P.quality[j.job.quality||"final"];return q?q.label.split(/[ (:]/)[0]:""}
-function showJobs(act){const h=act.map(j=>`<div class="job"><span class="dot ${j.status}"></span><span>${j.status==="running"?"drawing… "+Math.round(Date.now()/1000-j.started_at)+" s":j.status==="queued"?"waiting":"<b>problem:</b> "+esc(j.error)}</span><span class="hint">${esc(jobName(j))} · seed ${j.job.seed}</span></div>`).join("");
+function showJobs(act){const h=act.map(j=>`<div class="job"><span class="dot ${j.status}"></span><span>${j.status==="running"?"drawing… "+Math.round(Date.now()/1000-j.started_at)+" s":j.status==="queued"?"waiting":j.status==="cancelling"?"stopping…":j.status==="cancelled"?"stopped":"<b>problem:</b> "+esc(j.error)}</span><span class="hint">${esc(jobName(j))} · seed ${j.job.seed}</span>${["queued","running"].includes(j.status)?`<button class="s stop" onclick="stopJob('${j.id}')" title="Stop this one">&#10005; Stop</button>`:""}</div>`).join("");
   $$(".jobsCard").forEach(c=>{c.style.display=act.length?"block":"none";c.querySelector(".jobs").innerHTML=h})}
+async function stopJob(id){try{await api("/api/cancel",id?{id}:{})}catch(e){alert(e.message)}pollJobs()}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&e.shiftKey)stopJob()});
 function showWorking(){$$(".jobsCard").forEach(c=>{c.style.display="block";if(!c.querySelector(".job"))c.querySelector(".jobs").innerHTML='<div class="job"><span class="dot running"></span><span>starting…</span></div>'});pollJobs()}
 function tile(r,label){const v=isVid(r.file);return`<div class="thumb" data-f="${esc(r.file)}">${v?`<video muted loop playsinline preload="metadata" src="/img/${encodeURI(r.file)}#t=0.5" onmouseenter="this.play()" onmouseleave="this.pause()"></video>`:`<img loading="lazy" src="/img/${encodeURI(r.file)}">`}${label||v?`<span class="tag">${esc(label||"\u25B6 video")}</span>`:""}${r.rating?`<span class="rate">${RATE[r.rating]}</span>`:""}</div>`}
 function bind(el,list){el.querySelectorAll(".thumb").forEach(t=>t.onclick=()=>openLb(list.find(r=>r.file===t.dataset.f)||{file:t.dataset.f}))}

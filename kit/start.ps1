@@ -4,8 +4,9 @@
 #   ... -NoBrowser      do not open the browser        ... -ComfyUI   open ComfyUI's own editor too
 #   ... -Restart        stop and start again           ... -Stop      stop both
 #   ... -NoStudio       engine only (setup's self-test)
+#   ... -RestartEngine  kill and restart only the engine (the Studio's Stop button uses it when a step takes too long)
 # Logs: <data>\logs\comfyui.log, comfyui.err.log, studio.log, studio.err.log
-param([switch]$NoBrowser, [switch]$ComfyUI, [switch]$Restart, [switch]$Stop, [switch]$NoStudio)
+param([switch]$NoBrowser, [switch]$ComfyUI, [switch]$Restart, [switch]$Stop, [switch]$NoStudio, [switch]$RestartEngine)
 $ErrorActionPreference = "Stop"
 $Repo = Split-Path -Parent $PSScriptRoot
 $SettingsPath = Join-Path $Repo "my\settings.json"
@@ -47,6 +48,13 @@ function Stop-Ours {
 }
 
 if ($Stop -or $Restart) { Stop-Ours; if ($Stop) { Write-Host "stopped"; exit 0 } }
+if ($RestartEngine) {
+    Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" |
+        Where-Object { $_.ExecutablePath -eq $Py -and $_.CommandLine -like "*main.py*" } |
+        ForEach-Object { try { Stop-Process -Id $_.ProcessId -Force } catch {} }
+    $t0 = Get-Date
+    while ((Up "$($S.comfy_url)/system_stats") -and ((Get-Date) - $t0).TotalSeconds -lt 15) { Start-Sleep -Milliseconds 300 }
+}
 
 if (-not (Up "$($S.comfy_url)/system_stats")) {
     $cargs = @("-s", "ComfyUI\main.py", "--windows-standalone-build", "--listen", "127.0.0.1", "--port", "8188",
