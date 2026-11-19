@@ -1,7 +1,7 @@
 """gen.py: the agent's command line for the Studio. Run with ComfyUI's embedded Python (kit\\py.cmd does that):
 
   kit\\py.cmd kit\\studio\\gen.py status
-  kit\\py.cmd kit\\studio\\gen.py one --character "1girl, solo, ..." --body curvy --scene "..." [--style ll_tv] [--seed 5]
+  kit\\py.cmd kit\\studio\\gen.py one --character "1girl, solo, ..." --body curvy --scene "..." [--style ll_tv] [--seed 5] (round "claude" by default)
                                    [--quality draft|final] (default draft = Preview) [--framing portrait|landscape|square] [--strength 0.6] [--round r01] [--name x]
   kit\\py.cmd kit\\studio\\gen.py round r01 jobs.jsonl --title "What we test" [--question "Which face do you like?"]
         jobs.jsonl: one job per line, e.g. {"label": "A: tags only", "name": "a_s1", "character": "...", "body": "none", "seed": 1}
@@ -13,7 +13,7 @@
         the Rounds tab in the user's browser when it is done. Use this for "try a few for me" requests.
   kit\\py.cmd kit\\studio\\gen.py one --engine h3 --prompt "plain English ..." [--image out:r03/x_00001_.png] [--framing square]
         H3-Image (optional model set "h3"): describe the picture in sentences; --image (up to 2) = Picture 1 / Picture 2 to edit
-  kit\\py.cmd kit\\studio\\gen.py one --engine video --prompt "what happens, camera, sound" [--image out:studio/x.png] [--seconds 5]
+  kit\\py.cmd kit\\studio\\gen.py one --engine video --prompt "what happens, camera, sound" [--image out:r03/x.png] [--seconds 5]
         [--resolution 480p|720p] [--framing auto|portrait|landscape|square|phone]: H3 video (optional set "video"), an mp4 with
         sound; --image = the first frame (keeps her look; "auto" framing = the picture's shape)
   kit\\py.cmd kit\\studio\\gen.py make-body soft_short --describe "short and soft, round face, about 6 heads tall" --tags "(plump:1.4), (short:1.3)"
@@ -22,10 +22,13 @@
         candidates (round "body-<name>") so the user can choose; run again with --pick N.
   kit\\py.cmd kit\\studio\\gen.py final r03/a_s1_00001_.png [more files] [--round keep]
         remake pictures in Final quality: same seed and settings (Preview is the default; offer this for the ones the user likes)
-  kit\\py.cmd kit\\studio\\gen.py frames out:studio/x_00001_.mp4 [--n 6]
+  kit\\py.cmd kit\\studio\\gen.py frames out:r03/x_00001_.mp4 [--n 6]
         a strip of frames from a clip (<clip>_frames.jpg next to it), to look at a video
   kit\\py.cmd kit\\studio\\gen.py sheet r01           (re)make the contact sheet of a round
-  kit\\py.cmd kit\\studio\\gen.py feedback [r01]      the friend's ratings and notes (all, or one round)
+  kit\\py.cmd kit\\studio\\gen.py feedback [r01]      the friend's ratings and notes (all, or one round; private pictures left out)
+  kit\\py.cmd kit\\studio\\gen.py studio [--n 15]     the pictures the user made on the Studio page: the PUBLIC ones in full
+        (file, path, prompt, rating, note), the private ones only as time + kind. Never open a private one, its prompt,
+        its file or its metadata: ask the user to make it public first (CLAUDE.md "Private pictures")
   kit\\py.cmd kit\\studio\\gen.py selftest            one small image; checks it is not black / blank (setup and after a reset)
 """
 import argparse, json, os, sys, time
@@ -43,21 +46,62 @@ def cmd_status(a):
     s = core.settings()
     print(json.dumps({k: s.get(k) for k in sorted(s)}, indent=1, ensure_ascii=False))
     print("ComfyUI up:", core.comfy_up(s))
-    h = core.read_jsonl(os.path.join(core.MY, "history.jsonl"))
-    print("images made:", len(h), "| last:", h[-1]["file"] if h else "-")
+    h = core.read_jsonl(core.HIST)
+    print("pictures you (Claude) made:", len(h), "| last:", h[-1]["file"] if h else "-")
+    lib, sf = core.library(), core.studio_files()
+    pub = len([f for f in sf if f in lib["public"]])
+    print("the user's Studio pictures: %d private, %d public (gen.py studio) | in the trash: %d" % (len(sf) - pub, pub, len(lib["trash"])))
+
+
+def refuse_private(ref, what="That picture"):
+    if core.is_private(ref):
+        sys.exit("%s is one of the user's PRIVATE Studio pictures: don't open it. Ask the user to make it public in the Studio "
+                 "(My pictures: open it and press 'Let Claude see it', or Select several), then run this again." % what)
+
+
+def cmd_studio(a):
+    """The user's own Studio pictures, as far as the agent may see them."""
+    s = core.settings()
+    lib = core.library()
+    fb = core.latest_feedback(private=False)
+    recs = sorted((r for r in core.read_jsonl(core.PHIST) if r.get("file") and r["file"] not in lib["trash"]), key=lambda r: r.get("time", ""))
+    pub = [r for r in recs if r["file"] in lib["public"]]
+    priv = [r for r in recs if r["file"] not in lib["public"]]
+    print("The user's Studio pictures: %d private (not shown), %d public, %d in the trash." % (len(priv), len(pub), len(lib["trash"])))
+    print("\nPUBLIC (you may open these and read their prompts), newest first:")
+    for r in reversed(pub[-a.n:]):
+        out = {k: r.get(k) for k in ("time", "file", "engine", "style", "body", "quality", "seed", "character", "scene", "prompt", "images", "seconds", "resolution") if r.get(k) not in (None, "")}
+        out["kind"] = core.kind(r)
+        if r.get("images"):  # the pictures it was made from have their own privacy: a private one stays hidden
+            out["images"] = [ref if core.visibility(ref, lib) != "private" else "(a private picture: ask the user to make it public too)" for ref in r["images"]]
+        out["path"] = core.output_path(r["file"], s)
+        out.update({k: v for k, v in fb.get(r["file"], {}).items() if v})
+        print(json.dumps(out, ensure_ascii=False))
+    if not pub:
+        print("  none")
+    print("\nPRIVATE, newest first (time and kind only; do not open, search or describe them):")
+    for r in reversed(priv[-a.n:]):
+        print("  %s  %s" % (r.get("time", "?"), core.kind(r)))
+    if not priv:
+        print("  none")
 
 
 def job_from_args(a):
     j = {k: getattr(a, k, None) for k in ("style", "character", "body", "scene", "seed", "quality", "framing", "strength", "round", "name", "extra_neg", "body_tags", "end", "note", "engine", "prompt", "seconds", "resolution")}
     if getattr(a, "image", None):
+        for ref in a.image:
+            refuse_private(ref, ref)
         j["images"] = a.image
+    if str(j.get("body", "")).startswith("custom:"):
+        refuse_private(j["body"][7:], j["body"][7:])
     return {k: v for k, v in j.items() if v is not None}
 
 
 def cmd_one(a):
     s = core.settings()
+    job = job_from_args(a)  # refuses private pictures before anything else
     need_engine(s)
-    r = core.run(job_from_args(a), s)
+    r = core.run(job, s)
     print(json.dumps(r, ensure_ascii=False))
     print("file:", core.output_path(r["file"], s))
 
@@ -87,6 +131,7 @@ def open_picture(path):
 def cmd_frames(a):
     from PIL import Image
     s = core.settings()
+    refuse_private(a.file, a.file)
     path = a.file if os.path.isabs(a.file) else core.output_path(a.file[4:] if a.file.startswith("out:") else a.file, s)
     fr = video_frames(path, a.n)
     for im in fr:
@@ -270,8 +315,11 @@ def cmd_make_body(a):
 def cmd_final(a):
     s = core.settings()
     need_engine(s)
-    hist = {r["file"]: r for r in core.read_jsonl(os.path.join(core.MY, "history.jsonl")) if r.get("file")}
+    lib = core.library()
+    recs = core.read_jsonl(core.HIST) + [r for r in core.read_jsonl(core.PHIST) if r.get("file") in lib["public"]]
+    hist = {r["file"]: r for r in recs if r.get("file")}
     for f in a.files:
+        refuse_private(f, f)
         f = f.replace("\\", "/")
         f = f[4:] if f.startswith("out:") else f
         r = hist.get(f) or next((v for k, v in hist.items() if k.endswith("/" + f) or k.endswith(f)), None)
@@ -289,13 +337,14 @@ def cmd_final(a):
 
 def cmd_sheet(a):
     meta = core.load_json(os.path.join(core.MY, "rounds", a.round_id + ".json"), None)
-    items = meta["items"] if meta else [{"file": r["file"], "label": r["name"]} for r in core.read_jsonl(os.path.join(core.MY, "history.jsonl")) if r.get("round") == a.round_id]
+    items = meta["items"] if meta else [{"file": r["file"], "label": r["name"]} for r in core.read_jsonl(core.HIST) if r.get("round") == a.round_id]
     print(sheet(a.round_id, items))
 
 
 def cmd_feedback(a):
-    fb = core.latest_feedback()
-    hist = {r["file"]: r for r in core.read_jsonl(os.path.join(core.MY, "history.jsonl"))}
+    fb = core.latest_feedback(private=False)
+    lib = core.library()
+    hist = {r["file"]: r for r in core.read_jsonl(core.HIST) + [r for r in core.read_jsonl(core.PHIST) if r.get("file") in lib["public"]]}
     labels = {}
     if a.round_id:
         meta = core.load_json(os.path.join(core.MY, "rounds", a.round_id + ".json"), {}) or {}
@@ -379,8 +428,10 @@ def main():
     fb = sp.add_parser("feedback")
     fb.add_argument("round_id", nargs="?")
     sp.add_parser("selftest")
+    st = sp.add_parser("studio")
+    st.add_argument("--n", type=int, default=15, help="how many of each to list (newest)")
     a = ap.parse_args()
-    {"status": cmd_status, "one": cmd_one, "round": cmd_round, "grid": cmd_grid, "make-body": cmd_make_body, "final": cmd_final, "frames": cmd_frames, "sheet": cmd_sheet, "feedback": cmd_feedback, "selftest": cmd_selftest}[a.cmd](a)
+    {"status": cmd_status, "one": cmd_one, "round": cmd_round, "grid": cmd_grid, "make-body": cmd_make_body, "final": cmd_final, "frames": cmd_frames, "sheet": cmd_sheet, "feedback": cmd_feedback, "selftest": cmd_selftest, "studio": cmd_studio}[a.cmd](a)
 
 
 if __name__ == "__main__":

@@ -72,6 +72,14 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
 .thumb video{width:100%;display:block;aspect-ratio:2/3;object-fit:cover;background:#000}
 #lb video{max-height:calc(100vh - 32px);max-width:calc(100vw - 420px);margin:auto;display:none}
 @media (max-width:900px){#lb video{max-width:100%;max-height:60vh}}
+.thumb .vis{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;border-radius:6px;padding:1px 6px;font-size:12px}
+.thumb .chk{position:absolute;right:6px;bottom:6px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.9);border:2px solid var(--accent);color:var(--accent);font-weight:700;display:none;align-items:center;justify-content:center}
+.selecting .thumb .chk{display:flex}
+.thumb.sel{outline:4px solid var(--accent);outline-offset:-4px}
+.thumb.sel .chk{background:var(--accent);color:#fff}
+.selbar{position:sticky;top:58px;z-index:4;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.selbar button:disabled{opacity:.45;cursor:default}
+button.danger{border-color:var(--bad);color:var(--bad)}
 .pill{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:1px 9px;font-size:12px;color:var(--mute);margin-right:4px}
 </style>
 </head>
@@ -84,6 +92,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
     <button data-p="video" id="videotab" hidden>Video (H3)</button>
     <button data-p="gallery">My pictures</button>
     <button data-p="rounds">Rounds to judge</button>
+    <button data-p="trash" id="trashtab">Trash</button>
     <button onclick="window.open('/guide/','_blank')">Guide</button>
   </nav>
   <button id="busy" class="s" hidden onclick="stopJob()" title="Stop everything that is being made"></button>
@@ -125,7 +134,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
   </div>
   <div>
     <div class="card jobsCard" style="margin-bottom:14px;display:none"><div class="row" style="justify-content:space-between"><b style="flex:0 0 auto">Working on</b><button class="s stopall" style="flex:0 0 auto" onclick="stopJob()">&#9632; Stop all</button></div><div class="jobs"></div></div>
-    <div class="card"><b>Just made</b> <span class="hint">click a picture to rate it, keep its settings or make variations</span>
+    <div class="card"><b>Just made</b> <span class="hint">click a picture to rate it, keep its settings or make variations. &#128274; = private: Claude can't see it</span>
       <div class="thumbs" id="recent" style="margin-top:10px"></div></div>
   </div>
  </div>
@@ -201,11 +210,36 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
 </section>
 
 <section id="gallery" class="panel">
-  <div class="row" style="margin-bottom:12px;max-width:600px">
-    <select id="gfilter"><option value="all">All pictures</option><option value="fav">Only the ones I loved or liked</option></select>
+  <div class="row" style="margin-bottom:8px;max-width:900px">
+    <select id="gfilter"><option value="all">All pictures</option><option value="fav">Only the ones I loved or liked</option>
+      <option value="private">Private (Claude can't see them)</option><option value="public">Shared with Claude</option><option value="claude">Made by Claude</option></select>
     <input type="text" id="gsearch" placeholder="search the prompts (e.g. curvy, stage)">
+    <button class="s" id="gselect" style="flex:0 0 auto">Select</button>
+  </div>
+  <p class="hint" style="margin-top:0">&#128274; Pictures and videos you make here are <b>private</b>: Claude can't see them or their prompts.
+    To ask Claude about some, press <b>Select</b>, click them, then <b>Let Claude see</b>.</p>
+  <div class="card selbar" id="gallerybar" hidden>
+    <span id="gallerycount" class="hint"></span>
+    <button class="s" id="gallAll">Select all shown</button>
+    <button class="s" data-need id="gpub">&#128065; Let Claude see</button>
+    <button class="s" data-need id="gpriv">&#128274; Make private</button>
+    <button class="s danger" data-need id="gtrash">&#128465; Move to trash</button>
+    <button class="s" id="gnone">Clear</button>
   </div>
   <div class="thumbs" id="gal"></div>
+</section>
+
+<section id="trash" class="panel">
+  <p class="hint" style="margin-top:0">Pictures in the trash are hidden everywhere else in the Studio, but still on this PC.
+    <b>Restore</b> brings them back; <b>Delete forever</b> removes the files for good.</p>
+  <div class="card selbar" id="trashbar">
+    <span id="trashcount" class="hint"></span>
+    <button class="s" id="tall">Select all</button>
+    <button class="s" data-need id="trestore">&#8634; Restore</button>
+    <button class="s danger" data-need id="tdelete">Delete forever</button>
+    <button class="s danger" id="tempty" style="margin-left:auto">Empty the trash</button>
+  </div>
+  <div class="thumbs selecting" id="trashList"></div>
 </section>
 
 <section id="rounds" class="panel"><div id="roundList"></div></section>
@@ -226,6 +260,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
       <button class="s" data-r="meh" title="So-so">&#128528;</button>
       <button class="s" data-r="no" title="Not this">&#128078;</button>
     </div>
+    <div id="lbVis" class="hint" style="margin:6px 0"></div>
     <textarea id="lbNote" placeholder="What do you like or not like about it? (Claude reads this)"></textarea>
     <button class="s" id="lbSave" style="margin-top:6px">Save note</button>
     <div class="row" style="margin-top:12px">
@@ -237,6 +272,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mute)}
     <div class="row" style="margin-top:6px" id="lbH3row" hidden><button class="s" id="lbH3">Edit with H3</button></div>
     <div class="row" style="margin-top:6px" id="lbVidRow" hidden><button class="s" id="lbMakeVid">Make a video from this picture</button></div>
     <div class="row" style="margin-top:6px"><button class="s" id="lbOpen">Open the file</button></div>
+    <div class="row" style="margin-top:12px"><button class="s" id="lbPub"></button><button class="s danger" id="lbTrash">&#128465; Move to trash</button></div>
     <details open><summary>Settings</summary><div class="mono" id="lbInfo"></div></details>
   </div>
 </div>
@@ -251,7 +287,7 @@ function job(){return{style:$("#style").value,character:$("#character").value,sc
   strength:body==="none"?null:parseFloat($("#strength").value),framing:$("#framing").value,quality:$("#quality").value,
   seed:$("#seed").value.trim()||null,extra_neg:$("#extra_neg").value}}
 $$("nav button[data-p]").forEach(b=>b.onclick=()=>{$$("nav button").forEach(x=>x.classList.remove("on"));b.classList.add("on");
-  $$(".panel").forEach(p=>p.classList.toggle("on",p.id===b.dataset.p));if(b.dataset.p==="gallery")loadGallery();if(b.dataset.p==="rounds")loadRounds()});
+  $$(".panel").forEach(p=>p.classList.toggle("on",p.id===b.dataset.p));if(b.dataset.p==="gallery")loadGallery();if(b.dataset.p==="rounds")loadRounds();if(b.dataset.p==="trash")loadTrash()});
 async function init(){
   STATE=await api("/api/state");P=STATE.presets;
   const ex=$("#example");ex.innerHTML='<option value="">— pick one —</option>'+P.examples.map((e,i)=>`<option value="${i}">${esc(e.title)}</option>`).join("");
@@ -276,9 +312,9 @@ async function init(){
     $("#vres").innerHTML=Object.keys(V.resolutions).map(k=>`<option${k===V.default_resolution?" selected":""}>${k}</option>`).join("");
     ["#vres","#vsecs"].forEach(x=>$(x).onchange=veta);showSlot("video");veta()}
   engine();setInterval(engine,8000);setInterval(pollJobs,1500);
-  const tab=()=>{const h=location.hash.slice(1);const b=document.querySelector(`nav button[data-p="${["rounds","gallery","h3","video"].includes(h)?h:"create"}"]`);if(b)b.click()};
+  const tab=()=>{const h=location.hash.slice(1);const b=document.querySelector(`nav button[data-p="${["rounds","gallery","h3","video","trash"].includes(h)?h:"create"}"]`);if(b)b.click()};
   window.addEventListener("hashchange",tab);if(location.hash)tab();
-  hist=await api("/api/history");showRecent();
+  await getHist();showRecent();
 }
 function fill(e){if(e.style)$("#style").value=e.style;$("#character").value=e.character||"";$("#scene").value=e.scene||"";
   $("#extra_neg").value=e.extra_neg||"";if(e.framing)$("#framing").value=e.framing;setBody(e.body||"none");
@@ -305,16 +341,19 @@ async function pollJobs(){let js;try{js=await api("/api/jobs")}catch(e){return}
   $("#busy").hidden=!live;$("#busy").innerHTML=`&#9632; Stop (${live} in progress)`;
   showJobs(act);
   let fresh=false;for(const j of js)if(j.status==="done"&&!seenDone.has(j.id)){seenDone.add(j.id);fresh=true}
-  if(fresh){hist=await api("/api/history");showRecent()}}
+  if(fresh){await getHist();showRecent()}}
 function jobName(j){if(j.job.engine==="video")return"Video "+(j.job.resolution||"480p")+((j.job.images||[]).length?" from a picture":"");if(j.job.engine==="h3")return(j.job.images||[]).length?"H3 edit":"H3";const q=P&&P.quality[j.job.quality||"final"];return q?q.label.split(/[ (:]/)[0]:""}
 function showJobs(act){const h=act.map(j=>`<div class="job"><span class="dot ${j.status}"></span><span>${j.status==="running"?"drawing… "+Math.round(Date.now()/1000-j.started_at)+" s":j.status==="queued"?"waiting":j.status==="cancelling"?"stopping…":j.status==="cancelled"?"stopped":"<b>problem:</b> "+esc(j.error)}</span><span class="hint">${esc(jobName(j))} · seed ${j.job.seed}</span>${["queued","running"].includes(j.status)?`<button class="s stop" onclick="stopJob('${j.id}')" title="Stop this one">&#10005; Stop</button>`:""}</div>`).join("");
   $$(".jobsCard").forEach(c=>{c.style.display=act.length?"block":"none";c.querySelector(".jobs").innerHTML=h})}
 async function stopJob(id){try{await api("/api/cancel",id?{id}:{})}catch(e){alert(e.message)}pollJobs()}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&e.shiftKey)stopJob()});
 function showWorking(){$$(".jobsCard").forEach(c=>{c.style.display="block";if(!c.querySelector(".job"))c.querySelector(".jobs").innerHTML='<div class="job"><span class="dot running"></span><span>starting…</span></div>'});pollJobs()}
-function tile(r,label){const v=isVid(r.file);return`<div class="thumb" data-f="${esc(r.file)}">${v?`<video muted loop playsinline preload="metadata" src="/img/${encodeURI(r.file)}#t=0.5" onmouseenter="this.play()" onmouseleave="this.pause()"></video>`:`<img loading="lazy" src="/img/${encodeURI(r.file)}">`}${label||v?`<span class="tag">${esc(label||"\u25B6 video")}</span>`:""}${r.rating?`<span class="rate">${RATE[r.rating]}</span>`:""}</div>`}
+function tile(r,label){const v=isVid(r.file);return`<div class="thumb" data-f="${esc(r.file)}">${v?`<video muted loop playsinline preload="metadata" src="/img/${encodeURI(r.file)}#t=0.5" onmouseenter="this.play()" onmouseleave="this.pause()"></video>`:`<img loading="lazy" src="/img/${encodeURI(r.file)}">`}${label||v?`<span class="tag">${esc(label||"\u25B6 video")}</span>`:""}${r.rating?`<span class="rate">${RATE[r.rating]}</span>`:""}${r.by==="me"?(r.public?'<span class="vis" title="Shared: Claude can see this one">&#128065; Claude can see</span>':'<span class="vis" title="Private: Claude can\'t see it">&#128274;</span>'):""}<span class="chk">&#10003;</span></div>`}
+async function getHist(){hist=await api("/api/history");const n=hist.filter(r=>r.trashed).length;$("#trashtab").textContent=n?`Trash (${n})`:"Trash";return hist}
+const live=r=>!r.trashed&&r.round!=="_selftest";
+function refreshViews(){showRecent();if($("#gallery").classList.contains("on"))renderGallery();if($("#rounds").classList.contains("on"))loadRounds();if($("#trash").classList.contains("on"))renderTrash()}
 function bind(el,list){el.querySelectorAll(".thumb").forEach(t=>t.onclick=()=>openLb(list.find(r=>r.file===t.dataset.f)||{file:t.dataset.f}))}
-function showRecent(){const l=hist.filter(r=>r.round!=="_selftest").slice(0,12);const h=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">Your pictures will show up here.</div>';
+function showRecent(){const l=hist.filter(r=>live(r)&&r.engine!=="upload").slice(0,12);const h=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">Your pictures will show up here.</div>';
   $("#recent").innerHTML=h;bind($("#recent"),l);$("#recent2").innerHTML=h;bind($("#recent2"),l);$("#recent3").innerHTML=h;bind($("#recent3"),l)}
 const KEEP="Keep the girl from Picture 1 exactly as she is drawn: the same anime style, line art, colours, face, hair and body. Change only this: ";
 const SLOTS={h3:{max:2,list:[],empty:"none: a new picture from the description",label:i=>"Picture "+(i+1),
@@ -327,7 +366,7 @@ function addTo(k,f){const S=SLOTS[k];if(S.list.length>=S.max)S.list.shift();S.li
 async function uploadTo(k,files){for(const f of files){if(!f.type.startsWith("image/"))continue;
   const data=await new Promise((ok,no)=>{const fr=new FileReader();fr.onload=()=>ok(fr.result);fr.onerror=no;fr.readAsDataURL(f)});
   try{const r=await api("/api/upload",{data});addTo(k,r.file)}catch(e){alert(e.message)}}}
-async function openPicker(k){hist=await api("/api/history");const l=hist.filter(r=>r.file&&r.round!=="_selftest"&&!isVid(r.file)).slice(0,120);
+async function openPicker(k){await getHist();const l=hist.filter(r=>r.file&&live(r)&&!isVid(r.file)).slice(0,120);
   $("#pkList").innerHTML=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">No pictures yet.</div>';
   $$("#pkList .thumb").forEach(t=>t.onclick=()=>{addTo(k,t.dataset.f);$("#pk").classList.remove("on")});$("#pk").classList.add("on")}
 document.addEventListener("paste",e=>{const k=["h3","video"].find(k=>$("#"+k).classList.contains("on"));if(!k)return;
@@ -360,13 +399,46 @@ $("#vgo").onclick=async()=>{const p=$("#vprompt").value.trim();if(!p){alert("Des
 $("#h3go").onclick=async()=>{const p=$("#h3prompt").value.trim();if(!p){alert("Describe the picture first.");return}$("#h3go").disabled=true;
   try{await api("/api/generate",{engine:"h3",prompt:p,images:SLOTS.h3.list.map(f=>"out:"+f),framing:$("#h3framing").value,seed:$("#h3seed").value.trim()||null,count:parseInt($("#h3count").value)||1});showWorking()}
   catch(e){alert(e.message)}setTimeout(()=>$("#h3go").disabled=false,800)};
-async function loadGallery(){hist=await api("/api/history");const f=$("#gfilter").value,q=$("#gsearch").value.toLowerCase();
-  const l=hist.filter(r=>r.round!=="_selftest"&&(f==="all"||r.rating==="love"||r.rating==="like")&&(!q||(r.prompt||"").toLowerCase().includes(q)));
-  $("#gal").innerHTML=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">Nothing here yet.</div>';bind($("#gal"),l)}
-$("#gfilter").onchange=loadGallery;$("#gsearch").oninput=loadGallery;
-async function loadRounds(){const rs=await api("/api/rounds");hist=await api("/api/history");const byF=Object.fromEntries(hist.map(r=>[r.file,r]));
+async function loadGallery(){await getHist();renderGallery()}
+const GF={all:()=>true,fav:r=>r.rating==="love"||r.rating==="like",private:r=>r.by==="me"&&!r.public,public:r=>r.by==="me"&&r.public,claude:r=>r.by==="claude"};
+function renderGallery(){const f=GF[$("#gfilter").value]||GF.all,q=$("#gsearch").value.toLowerCase();
+  const l=hist.filter(r=>live(r)&&f(r)&&(!q||(r.prompt||"").toLowerCase().includes(q)));
+  $("#gal").innerHTML=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">Nothing here yet.</div>';selBind("gallery",$("#gal"),l)}
+$("#gfilter").onchange=renderGallery;$("#gsearch").oninput=renderGallery;
+// selecting several pictures: click toggles, Shift+click selects a range
+const SEL={gallery:{on:false,set:new Set(),list:[],last:-1,el:"#gal"},trash:{on:true,set:new Set(),list:[],last:-1,el:"#trashList"}};
+function selShow(k){const S=SEL[k],el=$(S.el);el.classList.toggle("selecting",S.on);
+  for(const f of[...S.set])if(!S.list.some(r=>r.file===f))S.set.delete(f);
+  el.querySelectorAll(".thumb").forEach(t=>t.classList.toggle("sel",S.set.has(t.dataset.f)));
+  $("#"+k+"count").textContent=S.set.size?`${S.set.size} selected`:"Click pictures to select them (Shift+click selects a row of them)";
+  $$(`#${k}bar [data-need]`).forEach(b=>b.disabled=!S.set.size);if(k==="gallery")$("#gallerybar").hidden=!S.on}
+function selBind(k,el,list){const S=SEL[k];S.list=list;
+  el.querySelectorAll(".thumb").forEach((t,i)=>t.onclick=e=>{if(!S.on){openLb(list[i]);return}const f=t.dataset.f;
+    if(e.shiftKey&&S.last>=0&&S.last<list.length){for(let x=Math.min(S.last,i);x<=Math.max(S.last,i);x++)S.set.add(list[x].file)}else if(S.set.has(f))S.set.delete(f);else S.set.add(f);
+    S.last=i;selShow(k)});selShow(k)}
+async function libAct(path,files,extra){try{const r=await api(path,Object.assign({files:[...files]},extra||{}));await getHist();refreshViews();return r}catch(e){alert(e.message)}}
+$("#gselect").onclick=()=>{const S=SEL.gallery;S.on=!S.on;S.set.clear();S.last=-1;$("#gselect").textContent=S.on?"Done selecting":"Select";selShow("gallery")};
+$("#gallAll").onclick=()=>{SEL.gallery.list.forEach(r=>SEL.gallery.set.add(r.file));selShow("gallery")};
+$("#gnone").onclick=()=>{SEL.gallery.set.clear();selShow("gallery")};
+const mineOf=set=>[...set].filter(f=>(hist.find(r=>r.file===f)||{}).by==="me");
+$("#gpub").onclick=async()=>{const m=mineOf(SEL.gallery.set);if(!m.length){alert("Those were made by Claude: it already knows them.");return}
+  await libAct("/api/visibility",m,{public:true});SEL.gallery.set.clear();selShow("gallery")};
+$("#gpriv").onclick=async()=>{const m=mineOf(SEL.gallery.set);if(!m.length){alert("Those were made by Claude: it already knows them.");return}
+  await libAct("/api/visibility",m,{public:false});SEL.gallery.set.clear();selShow("gallery")};
+$("#gtrash").onclick=async()=>{await libAct("/api/trash",SEL.gallery.set);SEL.gallery.set.clear();selShow("gallery")};
+async function loadTrash(){await getHist();renderTrash()}
+function renderTrash(){const l=hist.filter(r=>r.trashed);
+  $("#trashList").innerHTML=l.length?l.map(r=>tile(r)).join(""):'<div class="empty">The trash is empty.</div>';selBind("trash",$("#trashList"),l);$("#tempty").disabled=!l.length}
+$("#tall").onclick=()=>{SEL.trash.list.forEach(r=>SEL.trash.set.add(r.file));selShow("trash")};
+$("#trestore").onclick=async()=>{await libAct("/api/restore",SEL.trash.set);SEL.trash.set.clear();selShow("trash")};
+async function delForever(files){if(!files.length)return;
+  if(!confirm(`Delete ${files.length} ${files.length===1?"picture":"pictures"} forever?\n\nThe files are removed from this PC and can't be brought back.`))return;
+  await libAct("/api/delete",files);SEL.trash.set.clear();selShow("trash")}
+$("#tdelete").onclick=()=>delForever([...SEL.trash.set]);
+$("#tempty").onclick=()=>delForever(SEL.trash.list.map(r=>r.file));
+async function loadRounds(){const rs=await api("/api/rounds");await getHist();const byF=Object.fromEntries(hist.map(r=>[r.file,r]));
   $("#roundList").innerHTML=rs.length?rs.map(r=>`<div class="round card"><h3>${esc(r.title)}</h3><div class="hint">${esc(r.created||"")} <span class="pill">${esc(r.status||"")}</span></div>
-   ${r.question?`<p><b>Claude asks:</b> ${esc(r.question)}</p>`:""}<div class="thumbs">${(r.items||[]).map((it,i)=>tile(Object.assign({},byF[it.file]||{},{file:it.file}),(i+1)+". "+(it.label||""))).join("")}</div>
+   ${r.question?`<p><b>Claude asks:</b> ${esc(r.question)}</p>`:""}<div class="thumbs">${(r.items||[]).map((it,i)=>(byF[it.file]||{}).trashed?"":tile(Object.assign({},byF[it.file]||{},{file:it.file}),(i+1)+". "+(it.label||""))).join("")}</div>
    <label class="h">Your thoughts on this round</label><textarea data-round="${esc(r.id)}" placeholder="Which ones work and why? What should change?"></textarea>
    <button class="s" data-saveround="${esc(r.id)}" style="margin-top:6px">Send to Claude</button> <span class="hint">then tell Claude "I judged the round"</span></div>`).join(""):'<div class="empty">No rounds yet. Ask Claude to try something out and its test pictures will appear here for you to judge.</div>';
   rs.forEach(r=>{const box=document.querySelector(`.round textarea[data-round="${CSS.escape(r.id)}"]`);const el=box.closest(".round");bind(el,(r.items||[]).map(it=>Object.assign({},byF[it.file]||{},{file:it.file,label:it.label})))});
@@ -375,6 +447,9 @@ async function loadRounds(){const rs=await api("/api/rounds");hist=await api("/a
 function openLb(r){lbRec=r;const v=isVid(r.file);$("#lbH3row").hidden=v||!(STATE&&STATE.h3_ready);$("#lbVidRow").hidden=v||!(STATE&&STATE.video_ready);
   $("#lbImg").style.display=v?"none":"";$("#lbVid").style.display=v?"block":"none";
   if(v){$("#lbVid").src="/img/"+encodeURI(r.file);$("#lbVid").play().catch(()=>{})}else{$("#lbVid").pause();$("#lbImg").src="/img/"+encodeURI(r.file)}
+  const mine=r.by==="me";$("#lbPub").hidden=!mine;$("#lbPub").innerHTML=r.public?"&#128274; Make it private again":"&#128065; Let Claude see it";
+  $("#lbVis").innerHTML=mine?(r.public?"&#128065; <b>Shared with Claude</b>: it can see this and its prompt.":"&#128274; <b>Private</b>: Claude can't see this or its prompt."):r.by==="claude"?"Made by Claude.":"";
+  $("#lbNote").placeholder=mine&&!r.public?"Your note (private, like the picture)":"What do you like or not like about it? (Claude reads this)";$("#lbTrash").hidden=!!r.trashed;
   $("#lbVar").textContent=r.engine==="video"?"2 more clips":"4 variations";$("#lbTitle").textContent=r.label||r.name||r.file;$("#lbNote").value=r.note||"";
   $$(".rates button").forEach(b=>b.classList.toggle("on",b.dataset.r===r.rating));
   const sk=!!r.prompt&&(r.engine||"anima")==="anima"&&!!r.quality&&r.quality!=="final";$("#lbFinalRow").hidden=!sk;
@@ -386,7 +461,7 @@ function openLb(r){lbRec=r;const v=isVid(r.file);$("#lbH3row").hidden=v||!(STATE
 function closeLb(){$("#lb").classList.remove("on");$("#lbVid").pause()}
 $("#lb").onclick=e=>{if(e.target.id==="lb")closeLb()};document.onkeydown=e=>{if(e.key==="Escape")closeLb()};
 $$(".rates button").forEach(b=>b.onclick=async()=>{const r=b.dataset.r===lbRec.rating?null:b.dataset.r;await api("/api/rate",{file:lbRec.file,rating:r||"none",note:""});lbRec.rating=r;
-  $$(".rates button").forEach(x=>x.classList.toggle("on",x.dataset.r===r));hist=await api("/api/history");showRecent()});
+  $$(".rates button").forEach(x=>x.classList.toggle("on",x.dataset.r===r));await getHist();showRecent()});
 $("#lbSave").onclick=async()=>{await api("/api/rate",{file:lbRec.file,rating:null,note:$("#lbNote").value});$("#lbSave").textContent="Saved ✓";setTimeout(()=>$("#lbSave").textContent="Save note",1500)};
 const vidJob=r=>({prompt:r.prompt,images:r.images||[],framing:r.framing,seconds:r.seconds,resolution:r.resolution});
 $("#lbReuse").onclick=()=>{if(!lbRec.prompt)return;const go=p=>{closeLb();$$("nav button").find(b=>b.dataset.p===p).click()};
@@ -403,6 +478,8 @@ $("#lbFinal").onclick=async()=>{const r=lbRec;
 $("#lbMakeVid").onclick=()=>{addTo("video",lbRec.file);closeLb();$$("nav button").find(b=>b.dataset.p==="video").click()};
 $("#lbH3").onclick=()=>{addTo("h3",lbRec.file);
   closeLb();$$("nav button").find(b=>b.dataset.p==="h3").click()};
+$("#lbPub").onclick=async()=>{const pub=!lbRec.public;await libAct("/api/visibility",[lbRec.file],{public:pub});lbRec.public=pub;openLb(lbRec)};
+$("#lbTrash").onclick=async()=>{const f=lbRec.file;closeLb();await libAct("/api/trash",[f])};
 $("#lbOpen").onclick=()=>window.open("/img/"+encodeURI(lbRec.file),"_blank");
 init().catch(e=>{document.body.insertAdjacentHTML("afterbegin",`<p style="color:red;padding:10px">Could not load the Studio: ${esc(e.message)}</p>`)});
 </script>

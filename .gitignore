@@ -1,4 +1,6 @@
 __pycache__/
 *.pyc
 my/studio-errors.log
+my/private/
+*.tmp
 *.log

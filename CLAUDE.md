@@ -86,8 +86,13 @@ exactly what they will see and what to press.
   explain the trade-off and ask first, and do it in a separate copy (section 6, "Trying something new").
 - **Big downloads need a yes.** Before any download over 1 GB (an optional model, a LoRA), say how big it is and where it
   will go, and wait for a yes.
+- **The user's own pictures are private** (section 3, "Private pictures"). What they make on the Studio page (pictures,
+  H3 edits, videos, and pictures they paste in) is theirs: don't look at those pictures or their prompts, ratings or
+  notes until they make them public in the Studio.
 - **Never delete the user's pictures** without an explicit yes for exactly those files. Rejected test pictures
-  stay too unless they ask; when space runs low, see section 6.
+  stay too unless they ask; when space runs low, see section 6. The Studio has a **Trash** (soft delete): the user moves
+  pictures there and deletes them for good from its Trash tab. Pictures in the trash are the user's decision: don't
+  restore, empty or delete from it yourself; to free space, point them to it.
 - **Talk like a friend, not a manual.** Short sentences, no jargon, one question at a time. Show pictures instead of
   describing them. When they are vague ("make it cooler"), make a small round of options (section 4) instead of
   asking ten questions.
@@ -169,8 +174,30 @@ exactly what they will see and what to press.
   Plain sentences work as well as MiniMax's tagged format (`(S1)`, `<d>[Japanese] ...</d>`, same lines and order in the
   test). When the user describes a moment in their words, write the script for them, show it, then make the clip.
   You can't hear the result: ask them whether the voices said the lines and nobody babbled.
-- **Files:** pictures in `<data>\outputs\<round>\`; every picture is logged in `my/history.jsonl` (prompt, seed, body,
-  time); the user's ratings and notes in `my/feedback.jsonl` (Studio lightbox: love / like / so-so / not this + note).
+- **Files:** pictures in `<data>\outputs\<round>\`; every picture *you* make is logged in `my/history.jsonl` (prompt,
+  seed, body, time; `gen.py one` puts them in the round `claude` by default); ratings and notes on your pictures and
+  rounds in `my/feedback.jsonl` (Studio lightbox: love / like / so-so / not this + note). `my/library.json` says which of
+  the user's pictures are public and which pictures are in the trash (file names only).
+- **Private pictures.** Everything the user makes on the Studio page (Create, H3 edits, videos, "Final quality" and
+  "variations" buttons) and every picture they paste or drop into it is **private by default**: its record and ratings
+  live in `my/private/` (not in git), the files in `<data>\outputs\studio\` and `<data>\outputs\uploads\`.
+  You see one only after the user makes it public (*My pictures*: open it and press *Let Claude see it*, or *Select* several).
+  - The only way you look at them: `gen.py studio`. It prints the public ones in full (file, path, prompt, rating, note)
+    and the private ones as time + kind only ("picture", "H3 edit", "video", "pasted picture"). A public edit or clip made
+    from a picture that is still private shows that input as "(a private picture ...)": it needs making public too.
+  - Never open, list, search, copy or describe anything under `my/private/`, `<data>\outputs\studio\`,
+    `<data>\outputs\uploads\` or `<data>\inputs\` (the engine's copies of edit inputs) except files `gen.py studio`
+    printed as public. Not their metadata either (Studio PNGs carry their prompt), not the Studio's `/api/history` or
+    `/api/jobs`, not ComfyUI's `/history` or `/queue`, and no `git log -p` / `git show` / `git diff` of `my/history.jsonl`
+    or `my/feedback.jsonl` (older installs had the user's prompts there; the Studio moved them out). `gen.py` refuses
+    private pictures (`final`, `--image`, `frames`); don't work around it.
+  - **When the user talks about a picture you can't see** ("the one I just made", "fix her hands in my last one", "make
+    a video of my girl"), check `gen.py studio`. If it is private, say so kindly and tell them how: "That one is private,
+    so I can't see it. In the Studio open *My pictures*, click it and press **Let Claude see it** (or *Select* a few and
+    press **Let Claude see**). Tell me when it's done." Don't guess what is in it, and don't ask them to paste the
+    prompt as a workaround (they may; it's their choice). They can make it private again any time with the same button.
+  - Ratings and notes on private pictures stay private too; `gen.py feedback` leaves them out. Errors from the page
+    (`my/studio-errors.log`) list only the job's settings, never its prompt.
 
 Commands. The engine's Python is `<engine_dir>\python_embeded\python.exe` (`engine_dir` is in `my/settings.json`).
 Always pass `-s`. `kit\py.cmd` wraps it for cmd/PowerShell. From Git Bash, call the python.exe path directly.
@@ -185,6 +212,7 @@ kit\py.cmd kit\studio\gen.py one --engine video --prompt "..." [--image out:r03/
 kit\py.cmd kit\studio\gen.py final r03/x_s2_00001_.png     (the same picture in Final quality)
 kit\py.cmd kit\studio\gen.py make-body soft_short --describe "..." --tags "..."   (then --pick N)
 kit\py.cmd kit\studio\gen.py feedback r03
+kit\py.cmd kit\studio\gen.py studio          (the user's own Studio pictures: public ones in full, private ones as time + kind)
 kit\py.cmd kit\studio\gen.py selftest
 powershell -ExecutionPolicy Bypass -File kit/start.ps1 [-NoBrowser] [-ComfyUI] [-Restart] [-Stop]
 ```
@@ -317,8 +345,10 @@ Studio page server when its code changed (not while it is drawing); the open pag
 |---|---|
 | `settings.json` | data folder, engine folder, build, extra engine flags (setup writes it; edit `extra_flags` if needed) |
 | `system.json` | the PC (setup `-Check`) |
-| `history.jsonl` | every picture: file, prompt, seed, body, quality, time. Never edit, only append (the Studio and gen.py do) |
-| `feedback.jsonl` | the user's ratings and notes (Studio). Never edit |
+| `history.jsonl` | every picture you made: file, prompt, seed, body, quality, time. Never edit, only append (gen.py does) |
+| `feedback.jsonl` | the user's ratings and notes on your pictures and rounds (Studio). Never edit |
+| `library.json` | the user's pictures they made public, and the trash (file names and times; the Studio writes it) |
+| `private/` | the user's own Studio pictures' records and ratings. **Private: never open** (section 3); not in git |
 | `rounds/<id>.json`, `<id>.jobs.jsonl` | each round: question, items, status |
 | `ROUNDS.md` | the lab notebook: dated entries per round |
 | `RECIPES.md` | the recipe book: what works for each kind of picture, with full example prompts |

@@ -5,8 +5,12 @@ Endpoints (JSON):
   GET  /api/state       presets, settings summary, ComfyUI up?, queue
   POST /api/generate    {job..., count}  -> queues `count` images (seed, seed+1, ...)
   GET  /api/jobs        jobs started from this page (queued / running / done / error)
-  GET  /api/history     every image (newest first) with its latest rating/note
+  GET  /api/history     every image (newest first) with its latest rating/note, who made it ("by": me / claude),
+                        "public" and "trashed". The user's own pictures are private: never read this as the agent
   POST /api/rate        {file, rating, note}
+  POST /api/visibility  {files, public}  share the user's pictures with Claude (public) or take them back
+  POST /api/trash       {files}  soft-delete;  /api/restore {files} back out of the trash
+  POST /api/delete      {files}  delete forever (only files already in the trash)
   POST /api/cancel      {id?}  stop one job (queued or drawing), or everything without an id; a drawing job is
                         interrupted, and if the engine has not stopped after FORCE_AFTER s it is restarted (immediate)
   POST /api/upload      {data: "data:image/...;base64,..."} a pasted / dropped picture -> outputs/uploads/, for H3 edits
@@ -59,7 +63,7 @@ def run_one(entry):
     entry["status"] = "running"
     entry["started_at"] = time.time()
     try:
-        entry["record"] = core.run(entry["job"], on_queued=lambda pid: entry.__setitem__("prompt_id", pid))
+        entry["record"] = core.run(entry["job"], on_queued=lambda pid: entry.__setitem__("prompt_id", pid), by="me")
         entry["status"] = "done" if entry["status"] != "cancelling" else "cancelled"
     except Exception as e:  # shown on the page; the agent reads my/studio-errors.log
         if entry["status"] == "cancelling":
@@ -68,7 +72,10 @@ def run_one(entry):
             entry["status"] = "error"
             entry["error"] = str(e)
             with open(os.path.join(core.MY, "studio-errors.log"), "a", encoding="utf-8") as f:
-                f.write("%s %s\n%s\n" % (time.strftime("%Y-%m-%d %H:%M:%S"), json.dumps(entry["job"]), traceback.format_exc()))
+                # the agent reads this log: only the job's settings, never the user's prompt or pictures
+                job = {k: v for k, v in entry["job"].items() if k in ("engine", "style", "body", "quality", "framing", "seed", "seconds", "resolution", "strength")}
+                job["pictures"] = len(entry["job"].get("images") or [])
+                f.write("%s %s\n%s\n" % (time.strftime("%Y-%m-%d %H:%M:%S"), json.dumps(job), traceback.format_exc()))
     entry["finished_at"] = time.time()
 
 
@@ -124,7 +131,8 @@ def safe_join(base, rel):
 
 def typical_secs(quality, body):
     """Median time of the last few images of this kind, so the page can say how long to wait."""
-    hist = core.read_jsonl(os.path.join(core.MY, "history.jsonl"))
+    hist = core.read_jsonl(core.HIST) + core.read_jsonl(core.PHIST)
+    hist.sort(key=lambda r: r.get("time", ""))
     if quality == "h3":
         xs = [r["secs"] for r in hist if r.get("engine") == "h3" and r.get("secs")][-7:]
     elif quality.startswith("video_"):
@@ -208,11 +216,7 @@ class H(BaseHTTPRequestHandler):
                     out = [{k: v for k, v in e.items()} for e in JOBS[-60:]]
                 return self.send(200, out)
             if p == "/api/history":
-                fb = core.latest_feedback()
-                recs = core.read_jsonl(os.path.join(core.MY, "history.jsonl"))
-                for r in recs:
-                    r.update(fb.get(r.get("file"), {}))
-                return self.send(200, list(reversed(recs)))
+                return self.send(200, core.all_records())
             if p == "/api/rounds":
                 rounds = []
                 d = os.path.join(core.MY, "rounds")
@@ -271,7 +275,14 @@ class H(BaseHTTPRequestHandler):
                 os.makedirs(os.path.dirname(dst), exist_ok=True)
                 with open(dst, "wb") as f:
                     f.write(raw)
+                core.add_upload(rel)
                 return self.send(200, {"file": rel})
+            if p == "/api/visibility":
+                return self.send(200, {"changed": core.set_public(b.get("files") or [], bool(b.get("public")))})
+            if p in ("/api/trash", "/api/restore"):
+                return self.send(200, {"changed": core.trash(b.get("files") or [], restore=p == "/api/restore")})
+            if p == "/api/delete":
+                return self.send(200, {"deleted": core.delete_forever(b.get("files") or [])})
             if p == "/api/rate":
                 return self.send(200, core.feedback(b["file"], b.get("rating"), b.get("note")))
             if p == "/api/preview":
@@ -282,6 +293,12 @@ class H(BaseHTTPRequestHandler):
 
 
 def main():
+    try:
+        n = core.split_private()  # older installs kept the user's Studio records in my/history.jsonl
+        if n:
+            print("moved %d Studio records to my/private/" % n, flush=True)
+    except Exception:
+        traceback.print_exc()
     threading.Thread(target=worker, daemon=True).start()
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), H)
     print("Love Live Studio on http://127.0.0.1:%d" % PORT, flush=True)

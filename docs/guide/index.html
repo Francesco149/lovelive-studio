@@ -541,8 +541,10 @@ to write one: describe the moment and it writes out the script.</p>
   <li>Click any picture: rate it (&#10084;&#65039; &#128077; &#128528; &#128078;), write what you think, <i>Use these settings</i> again, or make <i>4 variations</i>.</li>
   <li><b>Describe (H3)</b> (if H3-Image is installed): describe a picture in sentences, or edit one you made (section 9).</li>
   <li><b>Video (H3)</b> (if the video model is installed): a short clip with sound from a description, best started from one of your pictures (section 9).</li>
-  <li><b>My pictures</b>: everything you've made, searchable, with a "loved and liked only" filter.</li>
-  <li><b>Rounds to judge</b>: test pictures Claude made for you to compare (section 10).</li>
+  <li><b>My pictures</b>: everything you've made, searchable, with filters (loved and liked, private, shared with Claude, made by Claude).
+    Press <b>Select</b> to pick several at once (Shift+click picks a whole row) and share them with Claude, make them private, or move them to the trash.</li>
+  <li><b>Rounds to judge</b>: test pictures Claude made for you to compare (section 11).</li>
+  <li><b>Trash</b>: pictures you moved to the trash are hidden everywhere else. <i>Restore</i> brings them back; <i>Delete forever</i> removes the files from your PC.</li>
   <li>Your pictures are saved in the Studio's data folder under <code>outputs</code>.</li>
 </ul>
 <h3>ComfyUI (if you're curious)</h3>
@@ -562,6 +564,12 @@ folder onto ComfyUI and it reopens with that picture's exact settings. If you ev
   <li>"Why does she always have extra fingers?"</li>
   <li>"The page won't open." / "Pictures come out black." / "My disk is full."</li>
 </ul>
+<h3>Your pictures are private</h3>
+<p>What you make in the Studio (pictures, H3 edits, videos, pictures you paste in) is <b>yours</b>: Claude can't see those
+pictures or their prompts, and they show a &#128274;. When you want Claude's help with one ("fix her hands in this one",
+"make a video of her"), open it in <b>My pictures</b> and press <b>Let Claude see it</b>, or <b>Select</b> several and press
+<b>Let Claude see</b>. They then show &#128065;. The same button makes them private again. If you ask about a picture
+Claude can't see, it will tell you which button to press. The test pictures Claude makes for you are always visible to it.</p>
 <h3>Rounds</h3>
 <p>For anything with more than one possible answer, Claude makes a small <b>round</b>: a few versions side by side, with
 one thing changed between them and the same seeds, so the comparison is fair. You'll find them in the Studio's

@@ -11,14 +11,25 @@ A job is a dict:
   extra_neg  extra negative tags (optional)
   quality    "draft" (Preview, default) | "final"            framing  "portrait" | "landscape" | "square"
   seed       int (random when missing)     strength body control strength (default from the body preset)
-  round      folder name for the output (default "studio")   name  file name stem (default: time stamp)
+  round      folder name for the output (default "studio" from the page, "claude" from gen.py)   name  file name stem
+
+Privacy: pictures made on the Studio page (and pictures pasted into it) belong to the user. Their records live in
+my/private/ (not in git), and the agent sees one only after the user makes it public (my/library.json "public").
+my/history.jsonl holds only the agent's own pictures. my/library.json also holds the trash (soft-deleted files).
 """
-import json, os, random, re, shutil, time, urllib.parse, urllib.request, uuid
+import json, os, random, re, shutil, threading, time, urllib.parse, urllib.request, uuid
 
 KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.dirname(KIT)
 MY = os.path.join(ROOT, "my")
 CONTROLS = os.path.join(KIT, "controls")
+PRIVATE = os.path.join(MY, "private")
+HIST = os.path.join(MY, "history.jsonl")            # the agent's pictures
+FEED = os.path.join(MY, "feedback.jsonl")           # ratings / notes on the agent's pictures and rounds
+PHIST = os.path.join(PRIVATE, "history.jsonl")      # the user's own Studio pictures (private unless made public)
+PFEED = os.path.join(PRIVATE, "feedback.jsonl")     # ratings / notes on those
+LIB = os.path.join(MY, "library.json")              # {"public": {file: time}, "trash": {file: time}, "deleted": {file: time}}
+WLOCK = threading.RLock()                           # the page server writes these files from several threads
 
 
 def load_json(path, default=None):
@@ -48,8 +59,18 @@ def presets():
 
 def append_jsonl(path, rec):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "a", encoding="utf-8") as f:
+    with WLOCK, open(path, "a", encoding="utf-8") as f:
         f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+
+def write_jsonl(path, recs):
+    """Replace a jsonl file atomically (only the page server does this: moving, deleting records)."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        for r in recs:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+    os.replace(tmp, path)
 
 
 def read_jsonl(path):
@@ -347,10 +368,14 @@ def new_job(job):
     return j
 
 
-def run(job, s=None, on_queued=None):
-    """Generate one image. Returns the history record (also appended to my/history.jsonl)."""
+def run(job, s=None, on_queued=None, by="claude"):
+    """Generate one image. Returns the history record, appended to my/history.jsonl (by="claude", the agent) or to
+    my/private/history.jsonl (by="me", the Studio page: private until the user makes it public)."""
     s = s or settings()
     P = presets()
+    job = dict(job)
+    if by == "claude" and not job.get("round"):
+        job["round"] = "claude"
     j = new_job(job)
     g = build_graph(j, P, s)
     ui = None
@@ -371,12 +396,12 @@ def run(job, s=None, on_queued=None):
            "style": j.get("engine") if j.get("engine") in ("h3", "video") else j["style"], "character": j.get("character", ""), "body": j["body"], "body_tags": j.get("body_tags"),
            "scene": j.get("scene", ""), "extra_neg": j.get("extra_neg", ""), "quality": j["quality"], "framing": j["framing"],
            "seed": j["seed"], "strength": j.get("strength"), "prompt": build_prompt(j, P), "prompt_late": build_late_prompt(j, P), "negative": build_negative(j, P), "secs": secs,
-           "note": j.get("note", "")}
+           "note": j.get("note", ""), "by": by}
     if j.get("engine") == "video":
         V = P["video"]
         rec.update(seconds=round((video_length(j, V) - 4) / V["fps"], 1), resolution=j.get("resolution") or V["default_resolution"],
                    size="%dx%d" % video_size(j, V, s))
-    append_jsonl(os.path.join(MY, "history.jsonl"), rec)
+    append_jsonl(PHIST if by == "me" else HIST, rec)
     return rec
 
 
@@ -386,18 +411,214 @@ def output_path(rel, s=None):
 
 
 def feedback(file, rating=None, note=None, who="friend"):
+    """A rating / note. On one of the user's own Studio pictures it goes to my/private/ like the picture."""
     rec = {"time": time.strftime("%Y-%m-%d %H:%M:%S"), "file": file, "rating": rating, "note": note or "", "by": who}
-    append_jsonl(os.path.join(MY, "feedback.jsonl"), rec)
+    append_jsonl(PFEED if file in studio_files() else FEED, rec)
     return rec
 
 
-def latest_feedback():
-    """file -> latest {rating, note}."""
+def latest_feedback(private=True):
+    """file -> latest {rating, note}. private=False leaves out the ratings on private Studio pictures (for the agent)."""
     out = {}
-    for r in read_jsonl(os.path.join(MY, "feedback.jsonl")):
+    recs = read_jsonl(FEED)
+    if private:
+        recs += read_jsonl(PFEED)
+    else:
+        pub = library()["public"]
+        recs += [r for r in read_jsonl(PFEED) if r.get("file") in pub]
+    for r in recs:
         cur = out.setdefault(r["file"], {"rating": None, "note": ""})
         if r.get("rating") is not None:
             cur["rating"] = None if r["rating"] == "none" else r["rating"]
         if r.get("note"):
             cur["note"] = r["note"]
     return out
+
+
+# ---- privacy and trash -------------------------------------------------------------------------------------------
+
+def norm(rel):
+    rel = str(rel or "").replace("\\", "/")
+    return rel[4:] if rel.startswith("out:") else rel
+
+
+def library():
+    d = load_json(LIB, {}) or {}
+    for k in ("public", "trash", "deleted"):
+        d.setdefault(k, {})
+    return d
+
+
+def save_library(d):
+    with WLOCK:
+        tmp = LIB + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(d, f, indent=1, ensure_ascii=False, sort_keys=True)
+        os.replace(tmp, LIB)
+
+
+def studio_files():
+    return {r["file"] for r in read_jsonl(PHIST) if r.get("file")}
+
+
+def is_studio_record(r):
+    """Made on the Studio page (or pasted into it). Records from before the privacy split have no "by": the page always
+    used the round "studio" (gen.py one did too then; those count as the user's, the safe side)."""
+    if r.get("by"):
+        return r["by"] == "me"
+    f = r.get("file") or ""
+    return r.get("round") == "studio" or f.startswith(("studio/", "uploads/"))
+
+
+def visibility(rel, lib=None, sfiles=None):
+    """"claude" (the agent made it), "public" (the user's, shared with the agent) or "private" (the user's)."""
+    rel = norm(rel)
+    lib = lib or library()
+    if rel in lib["public"]:
+        return "public"
+    sfiles = studio_files() if sfiles is None else sfiles
+    if rel in sfiles:
+        return "private"
+    if rel.startswith(("uploads/", "studio/")) and rel not in {r.get("file") for r in read_jsonl(HIST)}:
+        return "private"  # a Studio file without a record (the safe side)
+    return "claude"
+
+
+def is_private(ref, s=None):
+    """True for a private Studio picture, given as out:<rel>, <rel> or a path inside the outputs folder."""
+    ref = str(ref)
+    if os.path.isabs(ref) or re.match(r"^[A-Za-z]:", ref):
+        data = (s or settings()).get("data_dir", "")
+        out = os.path.normcase(os.path.abspath(os.path.join(data, "outputs")))
+        p = os.path.normcase(os.path.abspath(ref))
+        if p.startswith(os.path.normcase(os.path.abspath(os.path.join(data, "inputs"))) + os.sep):
+            return True  # the engine's staged copies of edit / video inputs (pasted pictures among them)
+        if not p.startswith(out + os.sep):
+            return False
+        ref = p[len(out) + 1:]
+    return visibility(ref) == "private"
+
+
+def split_private():
+    """Move the user's Studio records (and their ratings) out of my/history.jsonl and my/feedback.jsonl into my/private/.
+    Runs when the page server starts; prints nothing about them. Returns how many records moved."""
+    with WLOCK:
+        hist = read_jsonl(HIST)
+        mine = [r for r in hist if is_studio_record(r)]
+        up = os.path.join(settings().get("data_dir", ""), "outputs", "uploads")
+        known = studio_files() | {r.get("file") for r in mine}
+        for fn in sorted(os.listdir(up)) if os.path.isdir(up) else []:  # pasted before they were recorded
+            if "uploads/" + fn not in known and os.path.splitext(fn)[1].lower() in (".png", ".jpg", ".jpeg", ".webp"):
+                t = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(os.path.getmtime(os.path.join(up, fn))))
+                mine.append({"time": t, "file": "uploads/" + fn, "round": "uploads", "name": fn, "engine": "upload", "by": "me"})
+        if not mine:
+            return 0
+        for r in mine:
+            r.setdefault("by", "me")
+        moved = {r.get("file") for r in mine}
+        fb = read_jsonl(FEED)
+        os.makedirs(PRIVATE, exist_ok=True)
+        write_jsonl(PHIST, read_jsonl(PHIST) + mine)
+        write_jsonl(PFEED, read_jsonl(PFEED) + [r for r in fb if r.get("file") in moved])
+        write_jsonl(HIST, [r for r in read_jsonl(HIST) if not is_studio_record(r)])  # re-read: gen.py may have appended
+        write_jsonl(FEED, [r for r in read_jsonl(FEED) if r.get("file") not in moved])
+        return len(mine)
+
+
+def add_upload(rel):
+    """A picture pasted / dropped into the page: the user's, private like their Studio pictures."""
+    append_jsonl(PHIST, {"time": time.strftime("%Y-%m-%d %H:%M:%S"), "file": rel, "round": "uploads", "name": os.path.basename(rel),
+                         "engine": "upload", "by": "me"})
+
+
+def set_public(files, public):
+    """Share the user's pictures with the agent, or take them back. The agent's own pictures are always known to it."""
+    with WLOCK:
+        lib, sf, n = library(), studio_files(), 0
+        for f in map(norm, files):
+            if f not in sf:
+                continue
+            if public and f not in lib["public"]:
+                lib["public"][f] = time.strftime("%Y-%m-%d %H:%M:%S")
+                n += 1
+            elif not public and lib["public"].pop(f, None):
+                n += 1
+        save_library(lib)
+        return n
+
+
+def trash(files, restore=False):
+    with WLOCK:
+        lib, n = library(), 0
+        for f in map(norm, files):
+            if restore:
+                n += bool(lib["trash"].pop(f, None))
+            elif f not in lib["trash"]:
+                lib["trash"][f] = time.strftime("%Y-%m-%d %H:%M:%S")
+                n += 1
+        save_library(lib)
+        return n
+
+
+def delete_forever(files, s=None):
+    """Delete pictures that are in the trash: the file (and its frame strip / staged copy) is removed from the PC.
+    The user's own records and ratings go too; the agent's record stays in its notebook, marked deleted."""
+    s = s or settings()
+    with WLOCK:
+        lib = library()
+        files = [f for f in map(norm, files) if f in lib["trash"]]
+        if not files:
+            return 0
+        sf = studio_files()
+        for f in files:
+            p = output_path(f, s)
+            extra = [os.path.splitext(p)[0] + "_frames.jpg"]
+            staged = os.path.join(s["data_dir"], "inputs", "studio", os.path.basename(p))
+            if os.path.isfile(p) and os.path.isfile(staged) and os.path.getsize(staged) == os.path.getsize(p):
+                extra.append(staged)
+            for x in [p] + extra:
+                try:
+                    os.remove(x)
+                except OSError:
+                    pass
+            lib["trash"].pop(f, None)
+            lib["public"].pop(f, None)
+            if f not in sf:
+                lib["deleted"][f] = time.strftime("%Y-%m-%d %H:%M:%S")
+        gone = set(files)
+        if gone & sf:
+            write_jsonl(PHIST, [r for r in read_jsonl(PHIST) if r.get("file") not in gone])
+            write_jsonl(PFEED, [r for r in read_jsonl(PFEED) if r.get("file") not in gone])
+        save_library(lib)
+        return len(files)
+
+
+def all_records():
+    """Every picture for the page (the user's browser): agent's and user's, newest first, with rating, note, who made
+    it, public and trashed flags. Never for the agent: it would show private prompts."""
+    lib = library()
+    fb = latest_feedback()
+    recs = [dict(r, by="claude") for r in read_jsonl(HIST)] + [dict(r, by="me") for r in read_jsonl(PHIST)]
+    recs.sort(key=lambda r: r.get("time", ""))
+    out = []
+    for r in recs:
+        f = r.get("file")
+        if not f or f in lib["deleted"]:
+            continue
+        r.update(fb.get(f, {}))
+        r["public"] = r["by"] == "claude" or f in lib["public"]
+        r["trashed"] = f in lib["trash"]
+        out.append(r)
+    return list(reversed(out))
+
+
+KINDS = {"anima": "picture", "upload": "pasted picture"}
+
+
+def kind(r):
+    e = r.get("engine", "anima")
+    if e == "h3":
+        return "H3 edit" if r.get("images") else "H3 picture"
+    if e == "video":
+        return "video from a picture" if r.get("images") else "video"
+    return KINDS.get(e, e)
